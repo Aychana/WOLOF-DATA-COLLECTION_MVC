@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestion des Audios - La Parole Wolof</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#331d00",
+                        "error-container": "#ffdad6",
+                        "secondary": "#10b981",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-dim": "#d9dad8",
+                        "on-primary-fixed": "#001e31",
+                        "on-secondary": "#ffffff",
+                        "outline": "#73777d",
+                        "surface-variant": "#e2e3e0",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary-fixed-variant": "#2b4a62",
+                        "on-background": "#191c1b",
+                        "surface-container-low": "#f3f4f1",
+                        "surface-container-high": "#e7e8e6",
+                        "surface-container": "#edeeeb",
+                        "secondary-container": "#ecfdf5",
+                        "on-secondary-fixed": "#002113",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#df8f00",
+                        "surface-tint": "#43617b",
+                        "surface-container-highest": "#e2e3e0",
+                        "surface-bright": "#f9faf7",
+                        "surface": "#f9faf7",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary-container": "#065f46",
+                        "background": "#f9faf7",
+                        "inverse-primary": "#abcae8",
+                        "primary": "#1a3a52",
+                        "inverse-on-surface": "#f0f1ee",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2e312f",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c2c7cd",
+                        "on-surface": "#191c1b",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-surface-variant": "#42474d",
+                        "primary-container": "#1a3a52",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#abcae8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "gutter": "16px",
+                        "stack-sm": "8px",
+                        "stack-lg": "24px",
+                        "section-gap": "40px",
+                        "container-margin": "16px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Be Vietnam Pro"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Be Vietnam Pro"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Be Vietnam Pro"],
+                        "headline-lg": ["Be Vietnam Pro"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .organic-pattern {
+            background-color: #f9faf7;
+            background-image: url("https://www.transparenttextures.com/patterns/graphy.png");
+            background-opacity: 0.03;
+        }
+        .waveform-mock {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 24px;
+        }
+        .waveform-bar {
+            width: 3px;
+            background-color: #e5e7eb;
+            border-radius: 1px;
+        }
+        .waveform-active {
+            background-color: #1a3a52;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden h-screen flex organic-pattern">
+<!-- Sidebar Navigation -->
+<aside class="hidden md:flex flex-col h-screen w-72 left-0 top-0 bg-surface-container-low border-r border-outline-variant p-4 space-y-stack-sm z-40 fixed">
+<div class="flex items-center gap-3 px-2 py-4 mb-4">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined text-3xl">security</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-primary leading-tight">Controller Portal</h2>
+<p class="text-label-md font-label-md text-on-surface-variant">Supervision Suite</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Gestion audios (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-bold rounded-lg transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">library_music</span>
+<span class="text-body-md font-body-md">Gestion Audios</span>
+</a>
+<!-- Paramètres -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">settings</span>
+<span class="text-body-md font-body-md">Paramètres</span>
+</a>
+<!-- Déconnexion -->
+<a class="flex items-center gap-3 px-4 py-3 text-error hover:bg-error-container rounded-lg transition-colors group mt-auto" href="#">
+<span class="material-symbols-outlined group-hover:text-error">logout</span>
+<span class="text-body-md font-body-md">Déconnexion</span>
+</a>
+</nav>
+<div class="pt-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 px-2">
+<img alt="Controller Avatar" class="w-10 h-10 rounded-full border border-outline-variant object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1LOP0LSyC3BSlTl37I1p3GAM3CDuD0PAvIunmkDJU2aMvMKJFitNBfmu6Eo3R1tD3Y1gBj7MRaCHBctwAVO9DXGk62A8aBRdgRhmngLkberx9PE2rsAIItlPdfGr4zL-wGqAId5gby77LZr7GxFPDAyDujwJVX9bKY_tjHuWZSC6ycxpJeWEmy65mMoCJ2Aabisfht6ssP29CFLnFjc8YKjJk129EKdybZg2GJXGRawEnBVHCFHcCjjgmjcmeSAcMEiKZvYYyrA"/>
+<div class="overflow-hidden">
+<p class="text-label-md font-label-md font-bold text-primary truncate">Khadim Sall</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Super Contrôleur</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-72 flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-0 md:left-72 h-16 bg-surface shadow-sm z-50 flex justify-between items-center px-gutter">
+<div class="flex items-center gap-4">
+<div class="md:hidden w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors cursor-pointer">
+<span class="material-symbols-outlined">menu</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl" data-weight="fill" style="font-variation-settings: 'FILL' 1;">security</span>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-bold bg-primary-container text-on-primary-container border border-primary/20">
+<span class="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
+                    CONTRÔLEUR
+                </span>
+</div>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors active:scale-90">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="h-8 w-px bg-outline-variant"></div>
+<div class="flex items-center gap-2 cursor-pointer group px-2 py-1 rounded-lg hover:bg-surface-container-high transition-colors">
+<p class="hidden sm:block text-label-md font-bold text-primary">Khadim Sall</p>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border border-outline-variant object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrQHGPaLdptJg24JjeUhu4-JRyx-UvFsBks58jjwxIhlMdbMkaUrpuVTUiH8h7bY6b1dDj-cC9LVEf2YQXqQtTqMvr0HK9ihkf3v2AChksRj95oRBuWjw3AuM69Z5fzKvNZlO8M8YYbnFnDQ6xU5hyMEStrC3VL9mxKel183Du9N0C_Xl9wSkbj8O2IUEIIh91MPAZjHm4MYFMEvXTJ9Lq5yH6W2D3gU1yNpYVTAfQC3xlIigeNlm6E9K2Px3GajjYd7cdgK9U6g"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<section class="flex-1 mt-16 overflow-y-auto p-gutter space-y-stack-lg pb-20">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Gestion des Audios</h1>
+<p class="text-body-md text-on-surface-variant">Supervisez et contrôlez la qualité de la collecte.</p>
+</div>
+<!-- Simplified KPI Bar -->
+<div class="flex flex-wrap gap-4 bg-surface-container-low p-3 rounded-xl border border-outline-variant">
+<div class="px-4 border-r border-outline-variant last:border-0 text-center">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Total</p>
+<p class="text-body-lg font-bold text-primary">1,240</p>
+</div>
+<div class="px-4 border-r border-outline-variant last:border-0 text-center">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">En attente</p>
+<p class="text-body-lg font-bold text-tertiary">124</p>
+</div>
+<div class="px-4 border-r border-outline-variant last:border-0 text-center">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Validés</p>
+<p class="text-body-lg font-bold text-secondary">940</p>
+</div>
+<div class="px-4 border-r border-outline-variant last:border-0 text-center">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Archivés</p>
+<p class="text-body-lg font-bold text-on-surface-variant">120</p>
+</div>
+</div>
+</div>
+<!-- Table Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<!-- Search & Filter Bar -->
+<div class="p-gutter border-b border-outline-variant flex flex-col lg:flex-row justify-between items-center gap-4 bg-white/50">
+<div class="relative w-full max-w-lg">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface border-outline-variant rounded-full text-label-md focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Rechercher par ID ou contenu..." type="text"/>
+</div>
+<div class="flex gap-2 w-full lg:w-auto">
+<button class="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-label-md font-bold text-primary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filtrer
+                    </button>
+<button class="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-outline-variant text-primary rounded-lg text-label-md font-bold hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Exporter (CSV)
+                    </button>
+</div>
+</div>
+<!-- Status Tabs -->
+<div class="flex border-b border-outline-variant bg-surface-container-low px-gutter">
+<button class="px-6 py-3 text-label-md font-bold border-b-2 border-primary text-primary">Tous</button>
+<button class="px-6 py-3 text-label-md font-medium text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent">Envoyé</button>
+<button class="px-6 py-3 text-label-md font-medium text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent">Validé</button>
+<button class="px-6 py-3 text-label-md font-medium text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent">Rejeté</button>
+<button class="px-6 py-3 text-label-md font-medium text-on-surface-variant hover:text-primary transition-colors border-b-2 border-transparent">Archivé</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container/50 text-on-surface-variant font-label-md text-label-sm uppercase tracking-wider">
+<tr>
+<th class="px-6 py-4 font-bold">ID</th>
+<th class="px-6 py-4 font-bold">Audio</th>
+<th class="px-6 py-4 font-bold">Transcription</th>
+<th class="px-6 py-4 font-bold">Traduction</th>
+<th class="px-6 py-4 font-bold">Statut</th>
+<th class="px-6 py-4 font-bold text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Envoyé Row -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-bold text-primary text-label-md">#AU-9425</td>
+<td class="px-6 py-4">
+<button class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container hover:scale-105 transition-transform shadow-sm">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+</button>
+</td>
+<td class="px-6 py-4 text-body-md truncate max-w-[180px]">Mbaa jam ngeen am ci...</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant italic truncate max-w-[180px]">J'espère que vous êtes en paix...</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-tighter">
+                                    Envoyé
+                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1">
+<button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors" title="Écouter"><span class="material-symbols-outlined text-lg">headphones</span></button>
+<button class="p-2 hover:bg-secondary/10 rounded-lg text-secondary transition-colors" title="Valider"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-2 hover:bg-error/10 rounded-lg text-error transition-colors" title="Rejeter"><span class="material-symbols-outlined text-lg">cancel</span></button>
+<button class="p-2 hover:bg-error/10 rounded-lg text-error transition-colors" title="Supprimer"><span class="material-symbols-outlined text-lg">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Validé Row -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-bold text-primary text-label-md">#AU-9421</td>
+<td class="px-6 py-4">
+<button class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container shadow-sm">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+</button>
+</td>
+<td class="px-6 py-4 text-body-md truncate max-w-[180px]">Na ngen def, mba jam ngeen am?</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant italic truncate max-w-[180px]">Comment allez-vous ?</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary/10 text-secondary border border-secondary/20 uppercase tracking-tighter">
+                                    Validé
+                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1">
+<button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors" title="Écouter"><span class="material-symbols-outlined text-lg">headphones</span></button>
+<button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors" title="Éditer"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-2 hover:bg-surface-variant rounded-lg text-on-surface-variant transition-colors" title="Archiver"><span class="material-symbols-outlined text-lg">archive</span></button>
+<button class="p-2 hover:bg-error/10 rounded-lg text-error transition-colors" title="Supprimer"><span class="material-symbols-outlined text-lg">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Rejeté Row -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4 font-bold text-primary text-label-md">#AU-9422</td>
+<td class="px-6 py-4">
+<button class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-error shadow-sm">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+</button>
+</td>
+<td class="px-6 py-4 text-body-md truncate max-w-[180px]">Dama bëgg dem...</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant italic truncate max-w-[180px]">Je veux aller...</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-error/10 text-error border border-error/20 uppercase tracking-tighter">
+                                    Rejeté
+                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1">
+<button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors" title="Écouter"><span class="material-symbols-outlined text-lg">headphones</span></button>
+<button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors" title="Éditer"><span class="material-symbols-outlined text-lg">edit</span></button>
+<button class="p-2 hover:bg-secondary/10 rounded-lg text-secondary transition-colors" title="Valider"><span class="material-symbols-outlined text-lg">check_circle</span></button>
+<button class="p-2 hover:bg-surface-variant rounded-lg text-on-surface-variant transition-colors" title="Archiver"><span class="material-symbols-outlined text-lg">archive</span></button>
+<button class="p-2 hover:bg-error/10 rounded-lg text-error transition-colors" title="Supprimer"><span class="material-symbols-outlined text-lg">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Archivé Row -->
+<tr class="hover:bg-surface-container-low transition-colors group bg-surface-container-low/50">
+<td class="px-6 py-4 font-bold text-on-surface-variant text-label-md">#AU-8900</td>
+<td class="px-6 py-4 opacity-70">
+<button class="w-10 h-10 rounded-full bg-outline-variant flex items-center justify-center text-on-surface-variant shadow-sm">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+</button>
+</td>
+<td class="px-6 py-4 text-body-md text-on-surface-variant truncate max-w-[180px]">Jërëjëf ci seen...</td>
+<td class="px-6 py-4 text-body-md text-outline italic truncate max-w-[180px]">Merci pour votre...</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-outline-variant text-on-surface-variant border border-outline uppercase tracking-tighter">
+                                    Archivé
+                                </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-1">
+<button class="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors" title="Écouter (Lecture seule)"><span class="material-symbols-outlined text-lg">headphones</span></button>
+<button class="p-2 hover:bg-surface-variant rounded-lg text-primary transition-colors" title="Dés-archiver"><span class="material-symbols-outlined text-lg">unarchive</span></button>
+<button class="p-2 hover:bg-error/10 rounded-lg text-error transition-colors" title="Supprimer"><span class="material-symbols-outlined text-lg">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-outline-variant flex items-center justify-between bg-surface-container-low/30">
+<p class="text-label-sm text-on-surface-variant">Affichage de 1-10 sur 1,240 audios</p>
+<div class="flex gap-2">
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="px-3 py-1 bg-primary text-on-primary rounded-lg text-label-sm font-bold">1</button>
+<button class="px-3 py-1 border border-outline-variant rounded-lg text-label-sm font-bold hover:bg-surface-container-high transition-colors">2</button>
+<button class="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Global Export FAB -->
+<button class="fixed bottom-8 right-8 bg-secondary text-on-secondary px-6 py-4 rounded-full shadow-xl flex items-center gap-3 hover:bg-secondary/90 hover:scale-105 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined">download</span>
+<span class="font-bold tracking-wide">Exporter Sélection</span>
+</button>
+</main>
+</body></html>

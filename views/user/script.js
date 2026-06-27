@@ -11,16 +11,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const previewPlayer   = document.getElementById("previewPlayer");
   const reRecordBtn     = document.getElementById("reRecordBtn");
   const submitBtn       = document.getElementById("submitBtn");
+  const submitBtnLabel  = submitBtn ? submitBtn.querySelector(".submit-btn__label") : null;
+  const SUBMIT_LABEL    = "Envoyer pour validation";
 
   // Éléments du modal d'enregistrement
   const recordingModal = document.getElementById("recordingModal");
   const timerFill      = document.getElementById("timerFill");
   const recElapsed     = document.getElementById("recElapsed");
   const waveCanvas     = document.getElementById("waveformCanvas");
-  const recPauseBtn    = document.getElementById("recPauseBtn");
-  const recSaveBtn     = document.getElementById("recSaveBtn");
-  const recDeleteBtn   = document.getElementById("recDeleteBtn");
-  const waveCtx        = waveCanvas.getContext("2d");
+  const stopBtn        = document.getElementById("stopBtn");
+  const waveCtx        = waveCanvas ? waveCanvas.getContext("2d") : null;
 
   let mediaRecorder  = null;
   let audioChunks    = [];
@@ -154,6 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
   recorderCircle.addEventListener("click", startRecording);
 
   async function startRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       activeStream   = stream;
@@ -174,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mediaRecorder.start(100);
 
       recorderCircle.classList.add("recording");
-      recorderText.textContent = "En cours...";
+      recorderText.textContent = "Enregistrement en cours";
       openRecordingModal();
       startTimer();
       drawWaveform();
@@ -188,7 +189,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function openRecordingModal() {
     timerFill.style.width   = "0%";
     recElapsed.textContent  = "0s";
-    recPauseBtn.textContent = "⏸ Pause";
     recordingModal.style.display = "flex";
   }
 
@@ -196,7 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
     recordingModal.style.display = "none";
     clearInterval(timerInterval);
     cancelAnimationFrame(animFrameId);
-    waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+    if (waveCtx && waveCanvas) {
+      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+    }
   }
 
   function startTimer() {
@@ -214,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function drawWaveform() {
-    if (!analyser) return;
+    if (!analyser || !waveCtx || !waveCanvas) return;
     const bufLen    = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufLen);
     const W = waveCanvas.width, H = waveCanvas.height;
@@ -223,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
       analyser.getByteTimeDomainData(dataArray);
       waveCtx.clearRect(0, 0, W, H);
       waveCtx.lineWidth   = 2.5;
-      waveCtx.strokeStyle = isPaused ? "rgba(255,255,255,0.3)" : "#ffa600";
+      waveCtx.strokeStyle = isPaused ? "rgba(255,255,255,0.3)" : "#10b981";
       waveCtx.beginPath();
       const slice = W / bufLen;
       let x = 0;
@@ -238,25 +240,15 @@ document.addEventListener("DOMContentLoaded", () => {
     draw();
   }
 
-  // ===== Contrôles modal =====
-  recPauseBtn.addEventListener("click", () => {
-    if (!mediaRecorder) return;
-    if (!isPaused) {
-      mediaRecorder.pause(); isPaused = true; recPauseBtn.textContent = "▶ Reprendre";
-    } else {
-      mediaRecorder.resume(); isPaused = false; recPauseBtn.textContent = "⏸ Pause";
-    }
-  });
-
-  recSaveBtn.addEventListener("click", () => {
-    if (elapsedSeconds < 2) {
-      showPopup("Enregistrement trop court (minimum 2 secondes).", "error");
-      return;
-    }
-    stopAndSave();
-  });
-
-  recDeleteBtn.addEventListener("click", stopAndDiscard);
+  if (stopBtn) {
+    stopBtn.addEventListener("click", () => {
+      if (elapsedSeconds < 2) {
+        showPopup("Enregistrement trop court (minimum 2 secondes).", "error");
+        return;
+      }
+      stopAndSave();
+    });
+  }
 
   function stopAndSave() {
     if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
@@ -331,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const box = document.createElement('div');
         box.className = 'popup-box';
-        box.style.backgroundColor = '#f39c12';
+        box.style.backgroundColor = '#1a3a52';
         box.innerHTML = `
           <div style="display:flex;align-items:center;gap:15px;margin-bottom:20px;">
             <div style="font-size:28px;">🔒</div>
@@ -341,11 +333,11 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
             <button id="toLoginBtn"
-              style="background:#27ae60;color:white;border:none;padding:10px 25px;border-radius:10px;font-weight:600;cursor:pointer;">
+              style="background:#10b981;color:white;border:none;padding:10px 25px;border-radius:10px;font-weight:600;cursor:pointer;">
               Se connecter
             </button>
             <button id="cancelLoginBtn"
-              style="background:#e0e0e0;color:#333;border:none;padding:10px 25px;border-radius:10px;font-weight:600;cursor:pointer;">
+              style="background:rgba(255,255,255,0.2);color:white;border:none;padding:10px 25px;border-radius:10px;font-weight:600;cursor:pointer;">
               Annuler
             </button>
           </div>
@@ -386,8 +378,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 3. Envoyer
-    submitBtn.disabled    = true;
-    submitBtn.textContent = " Envoi en cours...";
+    submitBtn.disabled = true;
+    if (submitBtnLabel) submitBtnLabel.textContent = "Envoi en cours…";
     showPopup("Envoi en cours...", "info");
 
     try {
@@ -405,36 +397,37 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Réponse serveur invalide:", text);
         showPopup("Le serveur a renvoyé une réponse invalide. Veuillez réessayer.", "error");
         submitBtn.disabled    = false;
-        submitBtn.textContent = "Envoyer";
+        if (submitBtnLabel) submitBtnLabel.textContent = SUBMIT_LABEL;
         return;
       }
 
       if (result && result.status === "success") {
         sessionStorage.removeItem(STORAGE_KEY);
         showPopup(result.message || "Formulaire enregistré avec succès !", "success");
-        // Reset propre sans rechargement brutal
         setTimeout(() => {
           form.reset();
           audioPreview.classList.add("hidden");
           previewPlayer.src           = "";
           fileNameDisplay.textContent = "Aucun fichier sélectionné";
           recorderText.textContent    = "Cliquez pour enregistrer";
+          recorderCircle.classList.remove("recording");
           submitBtn.disabled          = false;
-          submitBtn.textContent       = "Envoyer";
+          if (submitBtnLabel) submitBtnLabel.textContent = SUBMIT_LABEL;
+          loadRecentHistory();
         }, 2000);
       } else {
         const userMsg = result && result.message
           ? result.message
           : "Une erreur est survenue. Veuillez réessayer.";
         showPopup(userMsg, "error");
-        submitBtn.disabled    = false;
-        submitBtn.textContent = "Envoyer";
+        submitBtn.disabled = false;
+        if (submitBtnLabel) submitBtnLabel.textContent = SUBMIT_LABEL;
       }
     } catch (networkErr) {
       console.error("Erreur réseau:", networkErr);
       showPopup("Erreur de connexion au serveur. Vérifiez votre connexion internet.", "error");
-      submitBtn.disabled    = false;
-      submitBtn.textContent = "Envoyer";
+      submitBtn.disabled = false;
+      if (submitBtnLabel) submitBtnLabel.textContent = SUBMIT_LABEL;
     }
   });
 });
@@ -447,11 +440,22 @@ async function loadRecentHistory() {
     const authRes = await fetch('auth-status');
     const authData = await authRes.json();
     if (!authData.logged) {
-      recentHistoryContainer.innerHTML = `<p class="history-empty">Connectez-vous pour consulter votre historique d'uploads.</p>`;
+      recentHistoryContainer.innerHTML = `
+        <div class="history-placeholder">
+          <p class="history-empty">Connectez-vous pour consulter votre historique d'uploads et continuer l'envoi.</p>
+          <button id="connectNowBtn" class="history-action-btn">Se connecter</button>
+        </div>
+      `;
+      const connectBtn = document.getElementById('connectNowBtn');
+      if (connectBtn) {
+        connectBtn.addEventListener('click', () => {
+          window.location.href = 'login-user';
+        });
+      }
       return;
     }
 
-    const res = await fetch('user-history?limit=3');
+    const res = await fetch('user-history?limit=10');
     const data = await res.json();
     if (data.status !== 'success') {
       throw new Error(data.message || 'Erreur chargement historique');
@@ -462,7 +466,8 @@ async function loadRecentHistory() {
       return;
     }
 
-    recentHistoryContainer.innerHTML = data.data.map(item => {
+    const items = data.data.slice(0, 5);
+    recentHistoryContainer.innerHTML = items.map(item => {
       const status = item.status || 'E';
       const label = {
         E: 'En attente',
@@ -471,18 +476,33 @@ async function loadRecentHistory() {
         C: 'Contrôlé',
         A: 'Archivé'
       }[status] || status;
-      const reason = item.rejection_reason ? `<div class="history-reason">Motif : ${escapeHtml(item.rejection_reason)}</div>` : '';
+      const title = truncateTitle(item.transcription || item.traduction || `Contribution #${item.id}`);
+      const dateLabel = formatContributionDate(item.date_creation);
       return `
-        <article class="history-item">
-          <div class="history-item-top">
-            <strong>${escapeHtml(item.audio_name || item.original_name || 'Audio')}</strong>
-            <span class="history-badge history-${status}">${label}</span>
-          </div>
-          <div class="history-item-meta">${new Date(item.date_creation).toLocaleDateString('fr-FR')} · ${escapeHtml(item.transcription || '').substring(0, 50)}...</div>
-          ${reason}
-        </article>
+        <button type="button" class="contribution-row" data-id="${escapeHtml(item.id)}">
+          <span class="contribution-row__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/>
+            </svg>
+          </span>
+          <span class="contribution-row__body">
+            <span class="contribution-row__title">${escapeHtml(title)}</span>
+            <span class="contribution-row__date">${escapeHtml(dateLabel)}</span>
+          </span>
+          <span class="contribution-row__meta">
+            <span class="status-badge status-badge--${escapeHtml(status)}">${escapeHtml(label)}</span>
+            <span class="contribution-row__chevron" aria-hidden="true">›</span>
+          </span>
+        </button>
       `;
     }).join('');
+
+    recentHistoryContainer.querySelectorAll('.contribution-row').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        window.location.href = 'history.html?selectedId=' + encodeURIComponent(id);
+      });
+    });
   } catch (err) {
     console.error('Erreur historique utilisateur:', err);
     recentHistoryContainer.innerHTML = `<p class="history-empty">Impossible de charger l'historique.</p>`;
@@ -498,16 +518,36 @@ function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
+function truncateTitle(text, maxLen = 42) {
+  const t = String(text).trim();
+  if (t.length <= maxLen) return t || 'Sans titre';
+  return t.slice(0, maxLen - 1) + '…';
+}
+
+function formatContributionDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  if (sameDay) return `Aujourd'hui, ${time}`;
+  if (d.toDateString() === yesterday.toDateString()) return `Hier, ${time}`;
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + time;
+}
+
 
 // ===== showPopup — identique à la version qui marchait =====
 function showPopup(message, type = "info", autoClose = 3500) {
   const overlay = document.createElement("div");
   overlay.className = "popup-overlay";
 
-  let bgColor   = "#007bff";
+  let bgColor   = "#1a3a52";
   if (type === "error")   { bgColor = "#e74c3c";  }
-  if (type === "success") { bgColor = "#27ae60";  }
-  if (type === "warning") { bgColor = "#f39c12";  }
+  if (type === "success") { bgColor = "#10b981";  }
+  if (type === "warning") { bgColor = "#f59e0b";  }
 
   const box = document.createElement("div");
   box.className = "popup-box";

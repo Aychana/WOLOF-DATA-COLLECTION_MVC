@@ -28,6 +28,22 @@ class SuperAdminController {
         exit;
     }
 
+    // ===== DASHBOARD =====
+
+    public function getDashboardStats(): void {
+        if (!$this->requireSuperAdmin()) {
+            $this->jsonOut(['error' => 'Accès refusé']);
+        }
+
+        $days = intval($_GET['days'] ?? 30);
+        if ($days !== 0 && !in_array($days, [7, 30, 90], true)) {
+            $days = 30;
+        }
+
+        $stats = $this->audioModel->getDashboardStats($days);
+        $this->jsonOut($stats);
+    }
+
     // ===== ADMINS =====
 
     public function getAdminsList(): void {

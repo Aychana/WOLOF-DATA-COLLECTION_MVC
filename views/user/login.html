@@ -1,101 +1,81 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connexion — Collecte Linguistique Wolof</title>
-  <link rel="stylesheet" href="./style2.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Authentification - Collection Wolof</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="auth-page">
 
-  <div class="header">
-    <h1>Recensement de données Wolof en Français</h1>
-    <p>Connectez-vous pour soumettre vos enregistrements.</p>
-  </div>
+  <div class="auth-container">
 
-  <main>
-    <div class="login-card">
-      <h2>Connexion</h2>
-      <p class="subtitle">Entrez votre email et votre numéro de téléphone pour accéder à l'interface.</p>
+    <div class="auth-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>
+      </svg>
+    </div>
 
-      <form id="loginForm">
+    <div class="auth-card">
+      <div class="auth-card__head">
+        <h1 class="auth-title">Authentification</h1>
+        <span class="step-badge">Étape 1/2</span>
+      </div>
+
+      <p class="auth-subtitle">Entrez votre email ou téléphone pour accéder à votre espace contributeur.</p>
+
+      <form id="loginForm" class="auth-form" novalidate>
         <div class="form-group">
-          <label for="identifier">Email ou numéro de téléphone</label>
-          <input type="text" id="identifier" name="identifier" placeholder="email@example.com ou +221 77 123 45 67" autocomplete="off">
+          <label for="identifier" class="form-label">Email ou téléphone</label>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="identifier"
+              name="identifier"
+              class="form-input"
+              placeholder="votre.nom@collecte.sn"
+              autocomplete="username"
+              required
+            />
+          </div>
         </div>
-        <button type="submit" class="btn-submit" id="submitBtn">Se connecter</button>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+          <span class="btn-text">Soumettre</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
       </form>
 
-      <div class="back-link">
-        <a href="./">← Retour à l'accueil</a>
+      <div id="message" class="message" hidden role="status" aria-live="polite"></div>
+
+      <div class="auth-footer">
+        <p class="help-text">
+          <span class="help-icon" aria-hidden="true">?</span>
+          Besoin d'aide ? <a href="mailto:support@solidafrique.sn" class="help-link">Contactez le support</a>
+        </p>
       </div>
     </div>
-  </main>
 
-  <footer>
-    <p>© 2026 Projet IA Wolof par SOLID Afrique | Collecte linguistique</p>
-  </footer>
+    <div class="auth-branding">
+      <p>En continuant, vous contribuez au développement de la langue Wolof.</p>
+      <div class="auth-branding__dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
 
-  <script>
-    const form = document.getElementById("loginForm");
-    const submitBtn = document.getElementById("submitBtn");
+    <a href="index.html" class="auth-back-home">← Retour à l'accueil</a>
+  </div>
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Envoi...";
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-      const identifier = document.getElementById('identifier').value.trim();
-      if (!identifier) {
-        showToast("Veuillez indiquer votre email ou votre téléphone.", "error");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Se connecter";
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('identifier', identifier);
-
-      try {
-        const res = await fetch("request-verification", { method: "POST", body: formData });
-        const result = await res.json();
-
-        if (result.success) {
-          if (result.otp) {
-            localStorage.setItem('verificationCode', result.otp);
-            localStorage.setItem('verificationIdentifier', identifier);
-          }
-          showToast("Code envoyé ! Redirection...", "success");
-          setTimeout(() => window.location.href = result.redirect, 1300);
-        } else {
-          showToast(result.error || "Erreur lors de la connexion.", "error");
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Se connecter";
-        }
-      } catch {
-        showToast("Erreur de connexion au serveur.", "error");
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Se connecter";
-      }
-    });
-
-    function showToast(message, type = "info") {
-      const colors = { info: "#007bff", error: "#e74c3c", success: "#27ae60" };
-      const toast  = document.createElement("div");
-      toast.style.cssText = `
-        position:fixed; top:20px; right:-400px; z-index:99999;
-        background:${colors[type]||colors.info}; color:white;
-        padding:14px 20px; border-radius:10px;
-        box-shadow:0 4px 16px rgba(0,0,0,0.3);
-        font-weight:600; font-size:14px; max-width:340px;
-        display:flex; align-items:center; gap:10px;
-        transition:right 0.4s ease; font-family:'Segoe UI',sans-serif;
-      `;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.style.right = "20px", 50);
-      setTimeout(() => { toast.style.right = "-400px"; setTimeout(() => toast.remove(), 500); }, 4000);
-    }
-  </script>
+  <script src="login.js"></script>
 </body>
 </html>

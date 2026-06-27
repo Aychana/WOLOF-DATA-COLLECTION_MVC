@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mon Profil - Sama Bat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#85a4c0",
+                        "primary-container": "#1a3a52",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-primary-fixed-variant": "#2b4a62",
+                        "background": "#f9faf7",
+                        "on-background": "#191c1b",
+                        "surface-container": "#edeeeb",
+                        "on-surface": "#191c1b",
+                        "tertiary": "#331d00",
+                        "primary": "#00243b",
+                        "on-tertiary-fixed": "#2a1700",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffddb8",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#503000",
+                        "surface-container-low": "#f3f4f1",
+                        "primary-fixed-dim": "#abcae8",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#df8f00",
+                        "error": "#ba1a1a",
+                        "surface-container-highest": "#e2e3e0",
+                        "surface-variant": "#e2e3e0",
+                        "on-primary-fixed": "#001e31",
+                        "primary-fixed": "#cce5ff",
+                        "inverse-primary": "#abcae8",
+                        "surface-dim": "#d9dad8",
+                        "on-surface-variant": "#42474d",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#e7e8e6",
+                        "secondary": "#006c49",
+                        "on-secondary-fixed": "#002113",
+                        "inverse-surface": "#2e312f",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface": "#f9faf7",
+                        "secondary-fixed-dim": "#4edea3",
+                        "inverse-on-surface": "#f0f1ee",
+                        "outline": "#73777d",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#43617b",
+                        "surface-bright": "#f9faf7",
+                        "secondary-container": "#6cf8bb",
+                        "outline-variant": "#c2c7cd",
+                        "on-secondary-container": "#00714d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "40px",
+                        "stack-md": "16px",
+                        "base": "8px",
+                        "gutter": "16px",
+                        "stack-lg": "24px",
+                        "stack-sm": "8px",
+                        "container-margin": "16px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Be Vietnam Pro"],
+                        "headline-lg-mobile": ["Be Vietnam Pro"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Be Vietnam Pro"],
+                        "display-lg": ["Be Vietnam Pro"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9faf7;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .profile-bg-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(26, 58, 82, 0.03) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .active-tap {
+            transform: scale(0.98);
+            transition: transform 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-20 md:pb-0">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin h-16 bg-surface dark:bg-on-primary shadow-sm">
+<div class="flex items-center"><div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-white" data-icon="token">token</span></div></div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-primary-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-primary-container transition-colors active:scale-95 bg-secondary-container text-on-secondary-container">
+<span class="material-symbols-outlined text-on-secondary-container" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex min-h-screen pt-16">
+<!-- SideNavBar (Desktop Only) -->
+<!-- Main Content -->
+<main class="flex-1 p-gutter md:p-10 profile-bg-pattern">
+<div class="max-w-4xl mx-auto">
+<!-- Section Header -->
+<div class="mb-section-gap">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-2">Mon profil</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Gérez vos informations personnelles et suivez votre impact.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg">
+<!-- User Info Card -->
+<section class="md:col-span-2 bg-white rounded-2xl p-stack-lg border border-outline-variant/30 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center gap-stack-md mb-stack-lg">
+<div class="w-20 h-20 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border-4 border-surface-container">
+<img alt="Profile Picture" class="w-full h-full object-cover" data-alt="A professional headshot of a smiling West African man in his late 20s, wearing a modern shirt with subtle traditional Wolof geometric patterns. The lighting is warm and golden, reflecting the sun-drenched palette of the brand. He is positioned against a clean, softly blurred background of a modern community space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcIJu2-MINiZH5Si1jCqF-LxnNn-5HcsSWxkIPRMuYKtS6oEN5dqYTHvEkoEV1EEmwSLAugChLaSyK7e3h7NA6Op-NPHkdds3Py7r-008b_F94Ps4trchpMubc1CmCuqXzPMKCZm16U64rXSkgP93zjft1h3nkqQ7UscUsfMUOX_TB8ja9po0h-FCJDoQ0b8momoOj80tyUPXEGK7b3tweBfWsfYmGqz-lfZcoJsUKC4yvBBt8QO-PRppMJS3q-EvvahYLD3pBgA"/>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Abdoulaye Diallo</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">Contributeur Senior</p>
+</div>
+</div>
+<div class="space-y-stack-md border-t border-outline-variant/20 pt-stack-md">
+<div class="flex flex-col md:flex-row md:justify-between md:items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Email</span>
+<span class="font-body-md text-body-md text-on-surface">abdoulaye.diallo@example.sn</span>
+</div>
+<div class="flex flex-col md:flex-row md:justify-between md:items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Date d'inscription</span>
+<span class="font-body-md text-body-md text-on-surface">14 Mars 2024</span>
+</div>
+<div class="flex flex-col md:flex-row md:justify-between md:items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Langue principale</span>
+<span class="font-body-md text-body-md text-on-surface">Wolof</span>
+</div>
+</div>
+</section>
+<!-- Stats Section (Mobile column, Desktop sidebar-ish) -->
+<div class="flex flex-col gap-stack-md">
+<div class="bg-primary-container text-on-primary-container p-stack-md rounded-2xl flex items-center justify-between border border-primary">
+<div>
+<p class="font-label-sm text-label-sm opacity-80">Audios soumis</p>
+<p class="font-headline-md text-headline-md">128</p>
+</div>
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="mic">mic</span>
+</div>
+<div class="bg-secondary-container text-on-secondary-container p-stack-md rounded-2xl flex items-center justify-between border border-secondary/20">
+<div>
+<p class="font-label-sm text-label-sm opacity-80">Validés</p>
+<p class="font-headline-md text-headline-md">112</p>
+</div>
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="verified">verified</span>
+</div>
+<div class="bg-surface-container-high p-stack-md rounded-2xl flex items-center justify-between border border-outline-variant/30">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">En attente</p>
+<p class="font-headline-md text-headline-md text-primary">16</p>
+</div>
+<span class="material-symbols-outlined text-4xl text-on-surface-variant/30" data-icon="pending">pending</span>
+</div>
+</div>
+<!-- Action Buttons Section -->
+<section class="md:col-span-3 mt-stack-md flex flex-col md:flex-row gap-stack-md">
+<button class="flex-1 bg-primary text-on-primary font-label-md py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-primary-container">
+<span class="material-symbols-outlined" data-icon="lock_reset">lock_reset</span>
+                            Modifier mon mot de passe
+                        </button>
+<button class="flex-1 bg-error-container text-on-error-container font-label-md py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-error hover:text-white">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                            Se déconnecter
+                        </button>
+</section>
+</div>
+<!-- Extra Decorative / Informational Card -->
+<div class="mt-section-gap p-6 bg-tertiary-fixed text-on-tertiary-fixed rounded-2xl relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="font-headline-md text-headline-md mb-2">Votre Sagesse Compte</h4>
+<p class="font-body-md text-body-md max-w-lg">Vous avez contribué à préserver plus de 12 heures de récits oraux ce mois-ci. Merci de nourrir le Baobab Digital.</p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10 group-hover:scale-110 transition-transform" data-icon="park">park</span>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe h-16 md:hidden bg-surface/80 dark:bg-on-primary/80 backdrop-blur-xl border-t border-outline-variant/20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm-mobile">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+<span class="font-label-sm text-label-sm-mobile">Micro</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-label-sm text-label-sm-mobile">Historique</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm-mobile">Profil</span>
+</a>
+</nav>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => el.classList.add('active-tap'));
+            el.addEventListener('mouseup', () => el.classList.remove('active-tap'));
+            el.addEventListener('mouseleave', () => el.classList.remove('active-tap'));
+        });
+
+        // Detect if user scrolls to add extra depth to header
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+            } else {
+                header.classList.remove('shadow-md');
+            }
+        });
+    </script>
+</body></html>

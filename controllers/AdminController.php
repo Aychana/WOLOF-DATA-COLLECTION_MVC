@@ -131,7 +131,12 @@ class AdminController {
             $audios = $this->audioModel->getAvailableForValidators();
         }
 
-        echo json_encode(['status' => 'success', 'data' => $audios, 'role' => $role, 'admin_id' => $adminId]);
+        $stats = [];
+        if ($role === 'validator') {
+            $stats = $this->audioModel->getAverageValidationTimeForAdmin($adminId);
+        }
+
+        echo json_encode(['status' => 'success', 'data' => $audios, 'role' => $role, 'admin_id' => $adminId, 'stats' => $stats]);
         exit;
     }
 

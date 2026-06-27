@@ -1,41 +1,102 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="loginAdmin.css">
-    <title>Connexion Admin - Collecte Wolof</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion Admin - Collection Wolof</title>
+  <link rel="stylesheet" href="style_admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>Connexion Admin</h1>
-            <p>Plateforme de Collecte Wolof</p>
-        </div>
+<body class="auth-page">
 
-        <div id="errorMsg" class="error-message"></div>
-        <div id="infoMsg" class="info-message"></div>
+  <div class="auth-container">
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Identifiant</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-
-            <button type="submit" class="btn-login" id="submitBtn">Se connecter</button>
-
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Connexion en cours...</p>
-            </div>
-        </form>
+    <div class="auth-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M9 12l2 2 4-4"/>
+      </svg>
     </div>
 
-    <script src="loginAdmin.js"></script>
+    <div class="step-indicator">
+      <span class="step-badge">Espace Admin</span>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-card__head">
+        <h1 class="auth-title">Authentification</h1>
+      </div>
+      <p class="auth-subtitle">Accédez à votre espace de gestion des contributions Wolof.</p>
+
+      <form id="loginForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="username" class="form-label">Identifiant</label>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="form-input"
+              placeholder="admin@collecte.sn"
+              autocomplete="username"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Mot de passe</label>
+          <div class="input-wrapper">
+            <span class="input-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+          <span class="btn-text">Se connecter</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+      </form>
+
+      <div id="message" class="message" hidden role="status" aria-live="polite"></div>
+
+      <div class="auth-footer">
+        <p class="help-text">
+          <span class="help-icon" aria-hidden="true">?</span>
+          Problème de connexion ? Contactez le support technique.
+        </p>
+      </div>
+    </div>
+
+    <div class="auth-branding">
+      <p>Plateforme de gestion — Collection Wolof</p>
+      <div class="auth-branding__dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="loginAdmin.js"></script>
 </body>
 </html>

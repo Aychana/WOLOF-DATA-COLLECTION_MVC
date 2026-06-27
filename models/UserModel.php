@@ -91,6 +91,9 @@ class UserModel {
         if ($this->columnExists('users', 'phone')) {
             $select .= ", phone";
         }
+        if ($this->columnExists('users', 'created_at')) {
+            $select .= ", created_at";
+        }
         $select .= " FROM users WHERE id = ?";
 
         $stmt = $this->db->prepare($select);

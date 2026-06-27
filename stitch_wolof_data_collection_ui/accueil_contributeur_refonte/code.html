@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Accueil</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#85a4c0",
+                    "primary-container": "#1a3a52",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-primary-fixed-variant": "#2b4a62",
+                    "background": "#f9faf7",
+                    "on-background": "#191c1b",
+                    "surface-container": "#edeeeb",
+                    "on-surface": "#191c1b",
+                    "tertiary": "#331d00",
+                    "primary": "#1a3a52",
+                    "on-tertiary-fixed": "#2a1700",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed": "#ffddb8",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#503000",
+                    "surface-container-low": "#f3f4f1",
+                    "primary-fixed-dim": "#abcae8",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-container": "#df8f00",
+                    "error": "#ba1a1a",
+                    "surface-container-highest": "#e2e3e0",
+                    "surface-variant": "#e2e3e0",
+                    "on-primary-fixed": "#001e31",
+                    "primary-fixed": "#cce5ff",
+                    "inverse-primary": "#abcae8",
+                    "surface-dim": "#d9dad8",
+                    "on-surface-variant": "#42474d",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#e7e8e6",
+                    "secondary": "#10b981",
+                    "on-secondary-fixed": "#002113",
+                    "inverse-surface": "#2e312f",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface": "#f9faf7",
+                    "secondary-fixed-dim": "#4edea3",
+                    "inverse-on-surface": "#f0f1ee",
+                    "outline": "#73777d",
+                    "on-tertiary": "#ffffff",
+                    "surface-tint": "#43617b",
+                    "surface-bright": "#f9faf7",
+                    "secondary-container": "#6cf8bb",
+                    "outline-variant": "#c2c7cd",
+                    "on-secondary-container": "#00714d",
+                    "safran": "#f59e0b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-gap": "40px",
+                    "stack-md": "16px",
+                    "base": "8px",
+                    "gutter": "16px",
+                    "stack-lg": "24px",
+                    "stack-sm": "8px",
+                    "container-margin": "16px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Be Vietnam Pro"],
+                    "headline-lg-mobile": ["Be Vietnam Pro"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Be Vietnam Pro"],
+                    "display-lg": ["Be Vietnam Pro"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .waveform-bar {
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { height: 10px; }
+            to { height: 40px; }
+        }
+        .mic-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+            100% { transform: scale(0.95); opacity: 1; }
+        }
+        .bg-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l15 30-15 30L15 30z' fill='%231a3a52' fill-opacity='0.03'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface bg-pattern">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-margin h-16 bg-surface shadow-sm border-b border-outline-variant/30">
+<div class="flex items-center">
+<!-- Logo Seul -->
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="spatial_audio_off">spatial_audio_off</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors active:scale-95">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-24 pb-24 px-container-margin max-w-[1000px] mx-auto min-h-screen">
+<!-- Hero Section -->
+<section class="text-center mb-section-gap">
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-4">Contribuer à la collection Wolof</h1>
+<p class="text-on-surface-variant max-w-2xl mx-auto mb-10 font-body-md">Enregistrez des paroles, des contes ou des expressions pour enrichir notre base de données linguistique.</p>
+<div class="flex flex-col items-center gap-8">
+<!-- Giant Mic Button -->
+<div class="relative group cursor-pointer" onclick="toggleRecording()">
+<div class="w-40 h-40 md:w-48 md:h-48 bg-primary rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 group-hover:scale-105 active:scale-95" id="mic-bg">
+<span class="material-symbols-outlined text-white text-6xl md:text-7xl" data-icon="mic" id="mic-icon">mic</span>
+</div>
+<!-- Ripple effect -->
+<div class="absolute inset-0 bg-secondary/30 rounded-full mic-pulse hidden" id="mic-ripple"></div>
+</div>
+<p class="font-bold text-primary font-label-md uppercase tracking-wider" id="mic-status">Cliquez pour enregistrer</p>
+<!-- Waveform Simulation -->
+<div class="flex items-center justify-center gap-1.5 h-12 opacity-0 transition-opacity" id="waveform">
+<div class="w-1.5 bg-safran rounded-full waveform-bar" style="animation-delay: 0.1s"></div>
+<div class="w-1.5 bg-primary rounded-full waveform-bar" style="animation-delay: 0.3s"></div>
+<div class="w-1.5 bg-safran rounded-full waveform-bar" style="animation-delay: 0.2s"></div>
+<div class="w-1.5 bg-primary rounded-full waveform-bar" style="animation-delay: 0.5s"></div>
+<div class="w-1.5 bg-safran rounded-full waveform-bar" style="animation-delay: 0.4s"></div>
+<div class="w-1.5 bg-primary rounded-full waveform-bar" style="animation-delay: 0.6s"></div>
+</div>
+<div class="flex items-center gap-4 w-full max-w-xs">
+<div class="h-px bg-outline-variant/30 flex-grow"></div>
+<span class="text-on-surface-variant font-label-md">ou</span>
+<div class="h-px bg-outline-variant/30 flex-grow"></div>
+</div>
+<button class="flex items-center gap-2 px-8 py-3 border-[1.5px] border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined" data-icon="upload_file">upload_file</span>
+                Importer un fichier audio
+            </button>
+</div>
+</section>
+<!-- Submission Form Section -->
+<section class="bg-surface-container-lowest border border-outline-variant/30 rounded-[2rem] p-6 md:p-10 shadow-sm mb-section-gap">
+<h2 class="font-headline-md text-headline-md text-primary mb-8">Enregistrement et traduction</h2>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="flex flex-col gap-2">
+<label class="font-bold text-primary font-label-md px-1" for="transcription">Transcription Wolof</label>
+<textarea class="w-full rounded-2xl border-outline-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/20 p-4 font-body-md placeholder:text-outline bg-surface-container-low/30" id="transcription" placeholder="Saisissez la transcription ici..." rows="5"></textarea>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-bold text-primary font-label-md px-1" for="translation">Traduction Français</label>
+<textarea class="w-full rounded-2xl border-outline-variant/50 focus:border-primary focus:ring-2 focus:ring-primary/20 p-4 font-body-md placeholder:text-outline bg-surface-container-low/30" id="translation" placeholder="Traduisez le contenu en français..." rows="5"></textarea>
+</div>
+<div class="md:col-span-2 flex justify-center md:justify-end">
+<button class="w-full md:w-auto flex items-center justify-center gap-3 bg-secondary text-white px-10 py-4 rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-secondary/20" type="submit">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+                    Envoyer pour validation
+                </button>
+</div>
+</form>
+</section>
+<!-- Mini History Section -->
+<section class="mb-12">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-md text-headline-md text-primary">Dernières contributions</h3>
+<a class="text-secondary font-bold text-label-md flex items-center gap-1 hover:underline" href="#">
+                Voir tout l'historique <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+<!-- History Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 p-5 rounded-2xl flex items-center justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="audio_file">audio_file</span>
+</div>
+<div>
+<p class="font-bold text-primary">Proverbe Wolof #84</p>
+<p class="text-on-surface-variant text-label-sm">Aujourd'hui, 14:30</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-3 py-1 bg-secondary/10 text-secondary text-label-sm rounded-full font-semibold">Validé</span>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+<!-- History Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 p-5 rounded-2xl flex items-center justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="audio_file">audio_file</span>
+</div>
+<div>
+<p class="font-bold text-primary">Contes de Dimanche</p>
+<p class="text-on-surface-variant text-label-sm">Hier, 18:12</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-3 py-1 bg-safran/10 text-safran text-label-sm rounded-full font-semibold">En attente</span>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+<!-- History Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 p-5 rounded-2xl flex items-center justify-between hover:shadow-md transition-shadow">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/5 rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="audio_file">audio_file</span>
+</div>
+<div>
+<p class="font-bold text-primary">Poésie Traditionnelle</p>
+<p class="text-on-surface-variant text-label-sm">22 Oct, 09:45</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="px-3 py-1 bg-secondary/10 text-secondary text-label-sm rounded-full font-semibold">Validé</span>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe h-16 md:hidden bg-surface/95 backdrop-blur-md border-t border-outline-variant/20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-primary px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-sm text-[10px]">Accueil</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-sm text-[10px]">Historique</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-1" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-[10px]">Profil</span>
+</a>
+</nav>
+<script>
+    let isRecording = false;
+
+    function toggleRecording() {
+        isRecording = !isRecording;
+        const bg = document.getElementById('mic-bg');
+        const icon = document.getElementById('mic-icon');
+        const ripple = document.getElementById('mic-ripple');
+        const status = document.getElementById('mic-status');
+        const waveform = document.getElementById('waveform');
+
+        if (isRecording) {
+            bg.classList.replace('bg-primary', 'bg-secondary');
+            icon.textContent = 'stop';
+            ripple.classList.remove('hidden');
+            status.textContent = 'Enregistrement en cours...';
+            status.classList.add('text-secondary');
+            waveform.classList.remove('opacity-0');
+        } else {
+            bg.classList.replace('bg-secondary', 'bg-primary');
+            icon.textContent = 'mic';
+            ripple.classList.add('hidden');
+            status.textContent = 'Cliquez pour enregistrer';
+            status.classList.remove('text-secondary');
+            waveform.classList.add('opacity-0');
+        }
+    }
+</script>
+</body></html>

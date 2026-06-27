@@ -1,109 +1,96 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vérification</title>
-  <link rel="stylesheet" href="style2.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vérification - Collection Wolof</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="auth-page auth-page--verify">
 
-  <header>
-    <h1>Vérification de votre identifiant</h1>
-    <p>Un code de 6 chiffres vous a été envoyé à <strong id="userIdentifier"></strong></p>
-    <p id="codeHint" class="verify-hint"></p>
-  </header>
+  <div class="auth-container">
 
-  <main>
-    <div class="login-card">
-      <h2>Vérifier votre code</h2>
-      <p class="subtitle">Entrez le code reçu pour accéder à votre espace.</p>
+    <div class="auth-logo auth-logo--verify" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M9 12l2 2 4-4"/>
+      </svg>
+    </div>
 
-      <form id="verifyForm" method="POST" action="verify-user" enctype="multipart/form-data">
-        <input type="hidden" name="identifier" id="identifierInput">
+    <div class="step-indicator">
+      <span class="step-badge">Étape 2/2</span>
+    </div>
 
-        <div class="form-group">
-          <label for="code">Code OTP :</label>
-          <input type="text" id="code" name="code" maxlength="6" required pattern="[0-9]{6}" placeholder="123456">
+    <div class="auth-card">
+      <h1 class="auth-title auth-title--center">Confirmez votre accès</h1>
+
+      <p class="auth-subtitle auth-subtitle--center">
+        Nous avons envoyé un code de vérification à 6 chiffres sur
+        <strong id="userIdentifier">votre email</strong>
+      </p>
+
+      <p id="codeHint" class="code-hint" hidden role="status"></p>
+
+      <form id="verifyForm" class="auth-form" novalidate>
+        <input type="hidden" id="identifierInput" name="identifier" />
+
+        <div class="otp-container">
+          <label class="form-label form-label--center">Code OTP</label>
+          <div class="otp-inputs" id="otpInputs">
+            <input type="text" class="otp-input" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="Chiffre 1" autocomplete="one-time-code" />
+            <input type="text" class="otp-input" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="Chiffre 2" />
+            <input type="text" class="otp-input" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="Chiffre 3" />
+            <input type="text" class="otp-input" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="Chiffre 4" />
+            <input type="text" class="otp-input" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="Chiffre 5" />
+            <input type="text" class="otp-input" inputmode="numeric" maxlength="1" pattern="[0-9]" aria-label="Chiffre 6" />
+          </div>
+          <input type="hidden" id="codeInput" name="code" />
         </div>
 
-        <button type="submit" class="btn-submit">Vérifier</button>
+        <div class="timer-container">
+          <span class="timer-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </span>
+          <span id="timerText" class="timer-text">10:00</span>
+        </div>
+
+        <button type="submit" id="verifyBtn" class="btn btn-primary btn-block">
+          <span class="btn-text">Vérifier le code</span>
+          <span class="btn-shield" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </span>
+        </button>
       </form>
 
-      <div id="message"></div>
-      <p class="back-link">Vous n’avez pas reçu le code ? <a href="login-user">Réessayer</a></p>
+      <div id="message" class="message" hidden role="status" aria-live="polite"></div>
+
+      <div class="auth-footer auth-footer--verify">
+        <p class="help-text">
+          Je n'ai pas reçu le code
+          <button type="button" id="resendBtn" class="help-link help-link--btn">Renvoyer un nouveau code</button>
+        </p>
+        <p class="help-text support-text">
+          Besoin d'aide ? <a href="mailto:support@solidafrique.sn" class="help-link">Contactez le support</a>
+        </p>
+      </div>
     </div>
-  </main>
 
-  <footer>
-    <p>© 2025 Projet IA Wolof en Français | Collecte linguistique</p>
-  </footer>
+    <div class="auth-branding">
+      <p>En continuant, vous contribuez à la préservation de la culture Wolof.</p>
+    </div>
 
-  <script>
-    // Remplir l’email depuis l’URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const identifier = urlParams.get('identifier');
-    if (identifier) {
-      document.getElementById("userIdentifier").textContent = decodeURIComponent(identifier);
-      document.getElementById("identifierInput").value = decodeURIComponent(identifier);
-    }
+    <a href="login-user" class="auth-back-home">← Retour à la connexion</a>
+  </div>
 
-    const codeHint = document.getElementById('codeHint');
-    const storedCode = localStorage.getItem('verificationCode');
-    const storedIdentifier = localStorage.getItem('verificationIdentifier');
-    if (storedCode && storedIdentifier === identifier) {
-      codeHint.textContent = `Code temporaire : ${storedCode}`;
-      codeHint.style.color = '#fff';
-      codeHint.style.background = 'rgba(39, 174, 96, 0.18)';
-      codeHint.style.padding = '10px 14px';
-      codeHint.style.borderRadius = '14px';
-      codeHint.style.marginTop = '12px';
-      localStorage.removeItem('verificationCode');
-      localStorage.removeItem('verificationIdentifier');
-    }
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    // Gestion AJAX pour la vérification
-    document.getElementById("verifyForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const messageDiv = document.getElementById("message");
-
-      try {
-        console.log("Submitting verification form");
-        const res = await fetch("verify-user", {
-          method: "POST",
-          body: formData
-        });
-        console.log("Response received");
-        const result = await res.json();
-        console.log("Result parsed", result);
-
-        if (result.success) {
-          showPopup("Connexion réussie ! Redirection...", "success");
-          setTimeout(() => window.location.href = result.redirect || '/', 1500);
-        } else {
-          showPopup(result.error || "Erreur de vérification.", "error");
-        }
-      } catch (err) {
-        showPopup("Erreur de connexion au serveur.", "error");
-      }
-    });
-
-    // Fonction popup 
-    function showPopup(message, type = "info") {
-      const popup = document.createElement("div");
-      popup.className = `popup ${type}`;
-      popup.textContent = message;
-      document.body.appendChild(popup);
-
-      setTimeout(() => popup.classList.add("visible"), 50);
-
-      setTimeout(() => {
-        popup.classList.remove("visible");
-        setTimeout(() => popup.remove(), 400);
-      }, 3000);
-    }
-
-  </script>
+  <script src="verify.js"></script>
 </body>
 </html>

@@ -18,7 +18,7 @@ if (strpos($uri, $basePath) === 0) {
 }
 
 // ==================== ROUTES API ====================
-$apiRoutes = ['get-audios', 'upload', 'delete-audio', 'export-dataset', 'auth-status', 'user-history', 'update-user-upload'];
+$apiRoutes = ['get-audios', 'upload', 'delete-audio', 'export-dataset', 'auth-status', 'user-history', 'update-user-upload', 'user-profile', 'user-logout', 'user-change-password'];
 
 if (in_array($uri, $apiRoutes)) {
     $controller = new AudioController();
@@ -51,6 +51,18 @@ if (in_array($uri, $apiRoutes)) {
             break;
         case 'update-user-upload':
             $controller->updateUserUpload();
+            break;
+        case 'user-profile':
+        case 'user-logout':
+        case 'user-change-password':
+            $auth = new AuthController();
+            if ($uri === 'user-profile') {
+                $auth->getUserProfile();
+            } elseif ($uri === 'user-logout') {
+                $auth->logoutUser();
+            } else {
+                $auth->changeUserPassword();
+            }
             break;
     }
     exit;
@@ -110,6 +122,11 @@ $staticFiles = [
     'loginAdmin.css'          => 'admin/loginAdmin.css',
     'history.html'            => 'user/history.html',
     'history.js'              => 'user/history.js',
+    'profile.html'            => 'user/profile.html',
+    'profile.js'              => 'user/profile.js',
+    'verify.html'             => 'user/verify.html',
+    'login.js'                => 'user/login.js',
+    'verify.js'               => 'user/verify.js',
     'cadenas.png'             => 'user/cadenas.png',
     'bouton-modifier.png'     => 'assets/Icones/bouton-modifier.png',
     'coche.png'               => 'assets/Icones/coche.png',
@@ -227,6 +244,7 @@ if (in_array($uri, ['login-user', 'request-verification', 'verify-user'])) {
 
 // ==================== SUPER ADMIN ROUTES ====================
 $superAdminRoutes = [
+    'superadmin-get-dashboard',
     'superadmin-get-admins', 'superadmin-create-admin', 'superadmin-update-admin', 'superadmin-delete-admin',
     'superadmin-get-users',  'superadmin-delete-user',
     'superadmin-get-audios', 'superadmin-update-audio', 'superadmin-delete-audio'
@@ -236,6 +254,10 @@ if (in_array($uri, $superAdminRoutes)) {
     $superAdmin = new SuperAdminController();
 
     switch ($uri) {
+        case 'superadmin-get-dashboard':
+            $superAdmin->getDashboardStats();
+            break;
+
         case 'superadmin-get-admins':
             $superAdmin->getAdminsList();
             break;

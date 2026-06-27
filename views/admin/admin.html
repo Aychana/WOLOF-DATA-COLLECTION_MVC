@@ -1,103 +1,218 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Back Office - Gestion des Audios</title>
-  <link rel="stylesheet" href="style_admin.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Back Office - Collection Wolof</title>
+  <link rel="stylesheet" href="style_admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="admin-app">
 
-  <header>
-    <div class="header-top">
-      <div class="header-left">
-        <h1>Back Office — Gestion des Audios</h1>
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>
+        </svg>
+      </div>
+      <div>
+        <strong class="sidebar-brand__title">Admin</strong>
+        <span class="sidebar-brand__sub">Audio Verification</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav" aria-label="Navigation admin">
+        <!-- <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg> -->
+        <!-- Audios -->
+    </nav>
+    <div class="sidebar-profile">
+      <div class="sidebar-profile__info">
+        <span class="sidebar-profile__name" id="sidebarAdminName">—</span>
+        <span class="sidebar-profile__role" id="sidebarRoleLabel">VALIDATEUR</span>
+      </div>
+      <button type="button" id="sidebarLogoutBtn" class="sidebar-logout">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <div class="admin-shell">
+    <header class="admin-top-bar">
+      <div class="top-bar__left">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+        <h1 class="page-title" id="pageTitle">Queue de validation</h1>
+      </div>
+      <div class="top-bar__right">
         <span id="roleTag" class="role-tag"></span>
+        <span class="admin-name" id="adminGreeting"></span>
+        <div class="admin-actions">
+          <button type="button" class="admin-action-btn" id="passwordBtn" title="Changer le mot de passe" aria-label="Mot de passe">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
+          <button type="button" class="admin-action-btn" id="logoutBtn" title="Déconnexion" aria-label="Déconnexion">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="header-right">
-        <span id="adminGreeting" class="admin-greeting"></span>
-        <button id="logoutBtn" class="btn-logout-header">Déconnexion</button>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <main>
+    <main class="admin-main">
 
-    <!-- Barre de recherche + filtres statut -->
-    <div class="filter-bar">
-      <div class="search-inline">
-        <img src="rechercher.png" width="15" height="15" class="search-icon">
-        <input type="text" id="searchInput" placeholder="Rechercher par transcription, traduction, ID...">
-      </div>
-      <!-- Les onglets sont filtrés selon le rôle via JS -->
-      <div class="status-tabs" id="statusTabs">
-        <button class="stab active" data-status="">Tous</button>
-        <button class="stab" data-status="E">E — Envoyé</button>
-        <button class="stab" data-status="V">V — Validé</button>
-        <button class="stab" data-status="R">R — Rejeté</button>
-        <button class="stab" data-status="A">A — Archivé</button>
-      </div>
-    </div>
+      <section class="stats-row" id="statsRow" aria-label="Statistiques">
+        <div class="stat-card stat-card--primary" id="statPendingCard">
+          <p class="stat-card__number" id="statPending">0</p>
+          <p class="stat-card__label">audios en attente</p>
+          <p class="stat-card__hint">Préservez la sagesse orale wolof en validant chaque contribution.</p>
+        </div>
+        <div class="stat-card stat-card--light">
+          <div class="stat-card__icon stat-card__icon--success" aria-hidden="true">✓</div>
+          <div>
+            <p class="stat-card__number stat-card__number--sm" id="statValidatedToday">0</p>
+            <p class="stat-card__label">validés aujourd'hui</p>
+          </div>
+        </div>
+        <div class="stat-card stat-card--light">
+          <div class="stat-card__icon stat-card__icon--warning" aria-hidden="true">⏱</div>
+          <div>
+            <p class="stat-card__number stat-card__number--sm" id="statAvgTime">—</p>
+            <p class="stat-card__label">temps moyen</p>
+          </div>
+        </div>
+      </section>
 
-    <section class="table-section">
-      <table id="audioTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Audio</th>
-            <th>Transcription</th>
-            <th>Traduction</th>
-            <th>Statut</th>
-            <th id="thAssigned" style="display:none;">Pris en charge</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="emptyMsg" class="empty-msg" style="display:none;">Aucun audio à afficher.</div>
-    </section>
+      <section class="admin-filter-bar">
+        <div class="search-container">
+          <svg class="search-icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="search" id="searchInput" class="search-input" placeholder="Rechercher par ID ou texte…" />
+        </div>
+        <div class="status-tabs" id="statusTabs">
+          <button type="button" class="tab-btn active" data-status="">Tous</button>
+          <button type="button" class="tab-btn" data-status="E">En attente <span class="tab-badge" id="badge-E">0</span></button>
+          <button type="button" class="tab-btn" data-status="V">Validés <span class="tab-badge" id="badge-V">0</span></button>
+          <button type="button" class="tab-btn" data-status="R">Rejetés <span class="tab-badge" id="badge-R">0</span></button>
+          <button type="button" class="tab-btn" data-status="A" id="tabArchived" style="display:none;">Archivés <span class="tab-badge" id="badge-A">0</span></button>
+        </div>
+        
+      </section>
 
-  </main>
+      <section class="table-section">
+        <div class="table-wrapper">
+          <table class="admin-table" id="audioTable">
+            <thead>
+              <tr>
+                <th>ID Audio</th>
+                <th>Lecteur</th>
+                <th>Transcription (aperçu)</th>
+                <th id="thTraduction">Traduction</th>
+                <th>Statut</th>
+                <th id="thAssigned" style="display:none;">Pris en charge</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="empty-message" id="emptyMsg" style="display:none;">
+          <p>Aucun audio à afficher pour cette recherche.</p>
+        </div>
+        <div class="pagination-bar" id="paginationBar" style="display:none;">
+          <p id="paginationInfo">Affichage 0-0 sur 0 audios</p>
+          <div class="pagination">
+            <button type="button" class="pagination-btn" id="prevBtn" disabled>←</button>
+            <span id="pageInfo" class="page-info">1</span>
+            <button type="button" class="pagination-btn" id="nextBtn" disabled>→</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-  <!-- Modal édition transcription/traduction -->
-  <div id="editModal" class="confirm-overlay" style="display:none;">
-    <div class="confirm-box wide-box">
-      <h3> Modifier l'audio</h3>
-      <input type="hidden" id="editId">
-      <div class="edit-group">
-        <label>Transcription (Wolof)</label>
-        <textarea id="editTranscription" rows="3" placeholder="Transcription en Wolof..."></textarea>
+  <div id="editModal" class="modal-overlay" style="display:none;" role="dialog">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h2>Modifier l'audio</h2>
+        <button type="button" class="modal-close" onclick="closeEditModal()" aria-label="Fermer">×</button>
       </div>
-      <div class="edit-group">
-        <label>Traduction (Français)</label>
-        <textarea id="editTraduction" rows="3" placeholder="Traduction en Français..."></textarea>
+      <div class="modal-body">
+        <input type="hidden" id="editId" />
+        <div class="form-group">
+          <label class="form-label">Transcription (Wolof)</label>
+          <textarea id="editTranscription" class="form-textarea" rows="4" required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Traduction (Français)</label>
+          <textarea id="editTraduction" class="form-textarea" rows="4" required></textarea>
+        </div>
       </div>
-      <div class="confirm-actions">
-        <button class="confirm-no" onclick="closeEditModal()">Annuler</button>
-        <button class="confirm-yes" onclick="submitEdit()"> Enregistrer</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="submitEdit()">Enregistrer</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal motif de rejet -->
-  <div id="rejectModal" class="confirm-overlay" style="display:none;">
-    <div class="confirm-box">
-      <h3> Motif de rejet</h3>
-      <input type="hidden" id="rejectId">
-      <div class="edit-group">
-        <label>Raison du rejet</label>
-        <textarea id="rejectReason" rows="3" placeholder="Expliquer pourquoi cet audio est rejeté..."></textarea>
+  <div id="rejectModal" class="modal-overlay" style="display:none;" role="dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Motif de rejet</h2>
+        <button type="button" class="modal-close" onclick="closeRejectModal()" aria-label="Fermer">×</button>
       </div>
-      <div class="confirm-actions">
-        <button class="confirm-no" onclick="closeRejectModal()">Annuler</button>
-        <button class="confirm-yes" style="background:#e74c3c;" onclick="submitReject()">Rejeter</button>
+      <div class="modal-body">
+        <input type="hidden" id="rejectId" />
+        <div class="form-group">
+          <label class="form-label">Raison du rejet</label>
+          <textarea id="rejectReason" class="form-textarea" rows="4" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeRejectModal()">Annuler</button>
+        <button type="button" class="btn btn-danger" onclick="submitReject()">Rejeter l'audio</button>
       </div>
     </div>
   </div>
 
-  <footer>
-    <p>© 2026 Projet IA Wolof par SOLID Afrique | Back Office</p>
-  </footer>
+  <div id="detailsModal" class="modal-overlay" style="display:none;" role="dialog">
+    <div class="modal-content modal-wide">
+      <div class="modal-header">
+        <h2>Détails de l'enregistrement</h2>
+        <button type="button" class="modal-close" onclick="closeDetailsModal()" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body details-content">
+        <div class="details-row">
+          <span class="details-label">ID Audio</span>
+          <span class="details-value">
+            <span id="detailId">—</span>
+            <button type="button" class="copy-id-btn" onclick="copyDetailId()" aria-label="Copier l'ID">Copier</button>
+          </span>
+        </div>
+        <div class="details-row"><span class="details-label">Date</span><span id="detailDate" class="details-value">—</span></div>
+        <div class="details-row"><span class="details-label">Statut</span><span id="detailStatus" class="details-value">—</span></div>
+        <div class="details-section">
+          <h3>Audio</h3>
+          <audio id="detailAudio" controls class="audio-player"></audio>
+        </div>
+        <div class="details-section">
+          <h3>Transcription</h3>
+          <p id="detailTranscription" class="details-text">—</p>
+        </div>
+        <div class="details-section">
+          <h3>Traduction</h3>
+          <p id="detailTraduction" class="details-text">—</p>
+        </div>
+        <div class="details-section" id="rejectionSection" style="display:none;">
+          <h3>Raison du rejet</h3>
+          <p id="detailRejectionReason" class="details-text rejection-text">—</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
   <script src="script_admin.js"></script>
 </body>

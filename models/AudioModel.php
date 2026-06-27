@@ -294,6 +294,239 @@ class AudioModel
         return $success;
     }
 
+    public function getAverageValidationTimeForAdmin(string $adminId): array
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT
+                COUNT(*) AS validation_count,
+                AVG(TIMESTAMPDIFF(SECOND, u.date_creation, al.created_at)) AS avg_seconds
+             FROM audit_logs al
+             INNER JOIN uploads u ON u.id = al.audio_id
+             WHERE al.action = 'status_change'
+               AND al.admin_id = ?
+               AND JSON_UNQUOTE(JSON_EXTRACT(al.new_data, '$.status')) = 'V'
+               AND u.date_creation IS NOT NULL
+               AND al.created_at IS NOT NULL
+               AND al.created_at >= u.date_creation"
+        );
+        $stmt->bind_param("s", $adminId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result ? $result->fetch_assoc() : [];
+        $stmt->close();
+
+        $validationCount = (int)($row['validation_count'] ?? 0);
+        $avgSeconds = $row['avg_seconds'] !== null ? (float)$row['avg_seconds'] : null;
+
+        return [
+            'validation_count' => $validationCount,
+            'avg_seconds' => $avgSeconds !== null ? (int)round($avgSeconds) : null,
+            'avg_label' => $avgSeconds !== null ? $this->formatDuration((int)round($avgSeconds)) : null,
+        ];
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        $seconds = max(0, $seconds);
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $remainingSeconds = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%dh %02dm', $hours, $minutes);
+        }
+
+        if ($minutes > 0) {
+            return $remainingSeconds > 0
+                ? sprintf('%dm %02ds', $minutes, $remainingSeconds)
+                : sprintf('%dm', $minutes);
+        }
+
+        return sprintf('%ds', $remainingSeconds);
+    }
+
+    // ===== DASHBOARD STATS =====
+
+    public function getDashboardStats(int $days = 30): array
+    {
+        $dateFilter = $days > 0 ? "AND u.date_creation >= DATE_SUB(NOW(), INTERVAL $days DAY)" : "";
+
+        // KPIs
+        $kpis = [
+            'total_submitted' => 0,
+            'total_pending' => 0,
+            'total_validated' => 0,
+            'total_controlled' => 0,
+            'total_rejected' => 0,
+            'total_contributors' => 0,
+            'validation_rate' => 0,
+            'exportable_volume' => 0
+        ];
+
+        $kpiResult = $this->conn->query(
+            "SELECT 
+                COUNT(*) AS total,
+                SUM(CASE WHEN status='E' THEN 1 ELSE 0 END) AS submitted,
+                SUM(CASE WHEN status='V' THEN 1 ELSE 0 END) AS validated,
+                SUM(CASE WHEN status='C' THEN 1 ELSE 0 END) AS controlled,
+                SUM(CASE WHEN status='R' THEN 1 ELSE 0 END) AS rejected
+            FROM uploads u
+            WHERE 1=1 $dateFilter"
+        );
+        if ($kpiResult) {
+            $row = $kpiResult->fetch_assoc();
+            $kpis['total_submitted'] = (int)($row['total'] ?? 0);
+            $kpis['total_pending'] = (int)($row['submitted'] ?? 0);
+            $kpis['total_validated'] = (int)($row['validated'] ?? 0);
+            $kpis['total_controlled'] = (int)($row['controlled'] ?? 0);
+            $kpis['total_rejected'] = (int)($row['rejected'] ?? 0);
+            $kpis['exportable_volume'] = (int)($row['controlled'] ?? 0);
+            $kpis['validation_rate'] = $kpis['total_submitted'] > 0
+                ? round(($kpis['total_controlled'] / $kpis['total_submitted']) * 100, 1)
+                : 0;
+        }
+
+        $contribResult = $this->conn->query(
+            "SELECT COUNT(DISTINCT uploader_ref) AS cnt FROM uploads u WHERE uploader_ref IS NOT NULL AND uploader_ref != '' $dateFilter"
+        );
+        if ($contribResult) {
+            $contribRow = $contribResult->fetch_assoc();
+            $kpis['total_contributors'] = (int)($contribRow['cnt'] ?? 0);
+        }
+
+        // Daily stats (30 days)
+        $dailyStats = [];
+        $dailyResult = $this->conn->query(
+            "SELECT 
+                DATE(u.date_creation) AS date,
+                COUNT(*) AS total,
+                SUM(CASE WHEN status='E' THEN 1 ELSE 0 END) AS submitted,
+                SUM(CASE WHEN status='V' THEN 1 ELSE 0 END) AS validated,
+                SUM(CASE WHEN status='C' THEN 1 ELSE 0 END) AS controlled,
+                SUM(CASE WHEN status='R' THEN 1 ELSE 0 END) AS rejected
+            FROM uploads u
+            WHERE u.date_creation >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY DATE(u.date_creation)
+            ORDER BY u.date_creation ASC"
+        );
+        if ($dailyResult) {
+            while ($row = $dailyResult->fetch_assoc()) {
+                $dailyStats[] = [
+                    'date' => $row['date'],
+                    'submitted' => (int)($row['submitted'] ?? 0),
+                    'validated' => (int)($row['validated'] ?? 0),
+                    'controlled' => (int)($row['controlled'] ?? 0),
+                    'rejected' => (int)($row['rejected'] ?? 0)
+                ];
+            }
+        }
+
+        // Team productivity
+        $teamStats = [];
+        $teamResult = $this->conn->query(
+            "SELECT 
+                a.id, a.name, a.role,
+                COUNT(DISTINCT u.id) AS completed,
+                SUM(CASE WHEN u.status IN ('E','R') THEN 1 ELSE 0 END) AS pending
+            FROM admins a
+            LEFT JOIN uploads u ON u.assigned_to = a.id $dateFilter
+            WHERE a.role IN ('validator', 'controller')
+            GROUP BY a.id, a.name, a.role
+            ORDER BY a.role DESC, completed DESC"
+        );
+        if ($teamResult) {
+            while ($row = $teamResult->fetch_assoc()) {
+                $teamStats[] = [
+                    'admin_id' => $row['id'],
+                    'name' => $row['name'],
+                    'role' => $row['role'],
+                    'pending' => (int)($row['pending'] ?? 0),
+                    'completed' => (int)($row['completed'] ?? 0)
+                ];
+            }
+        }
+
+        // Top contributors
+        $topContributors = [];
+        $topResult = $this->conn->query(
+            "SELECT 
+                u.uploader_ref,
+                u2.name,
+                COUNT(u.id) AS volume,
+                SUM(CASE WHEN u.status='R' THEN 1 ELSE 0 END) AS rejected
+            FROM uploads u
+            LEFT JOIN users u2 ON u2.uploader_ref = u.uploader_ref
+            WHERE 1=1 $dateFilter
+            GROUP BY u.uploader_ref, u2.name
+            ORDER BY volume DESC
+            LIMIT 10"
+        );
+        if ($topResult) {
+            while ($row = $topResult->fetch_assoc()) {
+                $volume = (int)($row['volume'] ?? 0);
+                $rejected = (int)($row['rejected'] ?? 0);
+                $rejectionRate = $volume > 0 ? round(($rejected / $volume) * 100, 1) : 0;
+                $topContributors[] = [
+                    'name' => $row['name'] ?? 'Anonyme',
+                    'volume' => $volume,
+                    'rejection_rate' => $rejectionRate
+                ];
+            }
+        }
+
+        // Alerts
+        $alerts = [];
+
+        // Old pending audios
+        $oldPendingResult = $this->conn->query(
+            "SELECT COUNT(*) AS cnt FROM uploads 
+            WHERE status IN ('E','R') AND date_creation <= DATE_SUB(NOW(), INTERVAL 14 DAY)"
+        );
+        if ($oldPendingResult) {
+            $oldRow = $oldPendingResult->fetch_assoc();
+            $oldCount = (int)($oldRow['cnt'] ?? 0);
+            if ($oldCount > 0) {
+                $alerts[] = [
+                    'type' => 'pending_old',
+                    'message' => "$oldCount audios en attente depuis 14+ jours",
+                    'count' => $oldCount,
+                    'severity' => 'warning'
+                ];
+            }
+        }
+
+        // Inactive validators/controllers
+        $inactiveResult = $this->conn->query(
+            "SELECT 
+                a.id, a.name, a.role,
+                MAX(u.last_modified_at) AS last_activity
+            FROM admins a
+            LEFT JOIN uploads u ON u.last_modified_by = a.id
+            WHERE a.role IN ('validator', 'controller')
+            GROUP BY a.id, a.name, a.role
+            HAVING last_activity <= DATE_SUB(NOW(), INTERVAL 7 DAY) 
+                   OR last_activity IS NULL"
+        );
+        if ($inactiveResult) {
+            while ($row = $inactiveResult->fetch_assoc()) {
+                $alerts[] = [
+                    'type' => 'inactive_admin',
+                    'message' => "{$row['name']} ({$row['role']}) inactif depuis 7+ jours",
+                    'admin_id' => $row['id'],
+                    'severity' => 'info'
+                ];
+            }
+        }
+
+        return [
+            'kpis' => $kpis,
+            'daily_stats' => $dailyStats,
+            'team_productivity' => $teamStats,
+            'top_contributors' => $topContributors,
+            'alerts' => $alerts
+        ];
+    }
+
     private function columnExists(string $table, string $column): bool
     {
         $res = $this->conn->query(

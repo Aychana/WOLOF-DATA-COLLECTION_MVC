@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/../models/AudioModel.php';
 require_once __DIR__ . '/../models/VerificationModel.php';
 require_once __DIR__ . '/../config/mail.php';
 require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/PHPMailer.php';
@@ -170,5 +171,86 @@ class AuthController {
 
         $identifier = trim($_GET['identifier'] ?? '');
         return ['view' => 'user/verify', 'identifier' => $identifier];
+    }
+
+    public function getUserProfile(): void
+    {
+        header('Content-Type: application/json; charset=UTF-8');
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        $uploaderRef = $_SESSION['uploader_ref'] ?? null;
+        if (!$userId || !$uploaderRef) {
+            echo json_encode(['status' => 'error', 'message' => 'Utilisateur non connecté.', 'logged' => false]);
+            return;
+        }
+
+        $user = $this->userModel->getById($userId);
+        if (!$user) {
+            echo json_encode(['status' => 'error', 'message' => 'Profil introuvable.', 'logged' => false]);
+            return;
+        }
+
+        $audioModel = new AudioModel();
+        $uploads = $audioModel->getByUploaderRef($uploaderRef, 0);
+        $stats = [
+            'total'     => count($uploads),
+            'validated' => 0,
+            'pending'   => 0,
+            'rejected'  => 0,
+            'archived'  => 0,
+        ];
+        foreach ($uploads as $row) {
+            $s = $row['status'] ?? 'E';
+            if ($s === 'V') {
+                $stats['validated']++;
+            } elseif ($s === 'E') {
+                $stats['pending']++;
+            } elseif ($s === 'R') {
+                $stats['rejected']++;
+            } elseif ($s === 'A') {
+                $stats['archived']++;
+            }
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'logged' => true,
+            'user'   => [
+                'id'         => $user['id'],
+                'name'       => $user['name'],
+                'email'      => $user['email'],
+                'phone'      => $user['phone'] ?? null,
+                'created_at' => $user['created_at'] ?? null,
+                'language'   => 'Wolof',
+            ],
+            'stats'  => $stats,
+        ]);
+    }
+
+    public function logoutUser(): void
+    {
+        header('Content-Type: application/json; charset=UTF-8');
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
+        session_destroy();
+        echo json_encode(['status' => 'success', 'message' => 'Déconnexion réussie.', 'redirect' => 'login-user']);
+    }
+
+    public function changeUserPassword(): void
+    {
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'status'  => 'error',
+            'message' => 'La connexion se fait par code OTP envoyé par email. Utilisez « Se connecter » pour recevoir un nouveau code.',
+        ]);
     }
 }
