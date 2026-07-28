@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../models/AudioModel.php';
 require_once __DIR__ . '/../models/AdminModel.php';
 
@@ -12,7 +13,7 @@ class AudioController
     {
         $this->model      = new AudioModel();
         $this->uploadDir  = __DIR__ . '/../audios/';
-        $this->ffmpegPath = 'C:\\ffmpeg-2025-10-27-git-68152978b5-full_build\\bin\\ffmpeg.exe';
+        $this->ffmpegPath = __DIR__ . '/../bin/ffmpeg.exe';
     }
 
     public function getAll(): void
@@ -63,7 +64,9 @@ class AudioController
         header("Content-Type: application/json; charset=UTF-8");
         ini_set('display_errors', 0);
 
-        if ($_SERVER["REQUEST_METHOD"] !== "POST") { $this->jsonError("POST requis."); return; }
+        if ($_SERVER["REQUEST_METHOD"] !== "POST") { 
+                $this->jsonError("POST requis."); return; 
+            }
 
         if (empty($_POST["transcription"]) || empty($_POST["traduction"])) {
             $this->jsonError("Transcription et traduction obligatoires."); return;
@@ -94,42 +97,32 @@ class AudioController
         $final_name = $guid . ".wav";
         $final_path = $this->uploadDir . $final_name;
 
-        if ($ext === "mp3") {
-            $tmp_mp3 = $this->uploadDir . $guid . ".mp3";
-            move_uploaded_file($audio_tmp, $tmp_mp3);
-
-            if (!file_exists($this->ffmpegPath)) {
-                @unlink($tmp_mp3);
-                $this->jsonError("FFmpeg introuvable."); return;
-            }
-
-            // Convertir ET limiter à 15 secondes
-            $cmd = "\"" . $this->ffmpegPath . "\" -y -i " . escapeshellarg($tmp_mp3)
-                 . " -ar 16000 -ac 1 -t 15 " . escapeshellarg($final_path);
-            exec($cmd, $out, $ret);
-            @unlink($tmp_mp3);
-
-            if ($ret !== 0 || !file_exists($final_path)) {
-                $this->jsonError("Erreur conversion audio."); return;
-            }
-        } else {
-            // WAV : on coupe aussi à 15s via ffmpeg si disponible, sinon on accepte tel quel
-            if (file_exists($this->ffmpegPath)) {
-                $tmp_wav = $this->uploadDir . $guid . "_tmp.wav";
-                move_uploaded_file($audio_tmp, $tmp_wav);
-                $cmd = "\"" . $this->ffmpegPath . "\" -y -i " . escapeshellarg($tmp_wav)
-                     . " -ar 16000 -ac 1 -t 15 " . escapeshellarg($final_path);
-                exec($cmd, $out, $ret);
-                @unlink($tmp_wav);
-                if ($ret !== 0 || !file_exists($final_path)) {
-                    $this->jsonError("Erreur traitement audio WAV."); return;
-                }
-            } else {
-                move_uploaded_file($audio_tmp, $final_path);
-            }
+        // Étape 1 : On déplace d'abord l'audio reçu dans le dossier de travail
+        $temp_path = $this->uploadDir . $guid . "_temp." . $ext;
+        if (!move_uploaded_file($audio_tmp, $temp_path)) {
+            $this->jsonError("Impossible de sauvegarder le fichier temporaire."); return;
         }
 
-        // Insert sans assignedTo — les validateurs voient tous les E
+        // Étape 2 : Traitement Audio (Conversion / Découpe 15s)
+        $cmd = $this->ffmpegPath . " -y -i " . escapeshellarg($temp_path)
+             . " -ar 16000 -ac 1 -t 15 " . escapeshellarg($final_path) . " 2>&1";
+        
+        @exec($cmd, $out, $ret);
+
+        // Étape 3 : Vérification du résultat FFmpeg
+        if ($ret === 0 && file_exists($final_path)) {
+            // FFmpeg a fonctionné : on supprime le fichier temporaire
+            @unlink($temp_path);
+        } else {
+            // Si FFmpeg n'est pas dans le PATH ou échoue, on conserve le fichier original en .wav
+            if ($ext === "mp3") {
+                @unlink($temp_path);
+                $this->jsonError("FFmpeg est requis pour convertir les fichiers MP3."); return;
+            }
+            rename($temp_path, $final_path);
+        }
+
+        // Étape 4 : Insertion en base de données
         $audio_path_db = "audios/" . $final_name;
         $success = $this->model->insert(
             $guid, $final_name, $original_name,
