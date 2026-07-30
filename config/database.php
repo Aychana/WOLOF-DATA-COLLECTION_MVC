@@ -1,9 +1,11 @@
 <?php
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');          
-define('DB_NAME', 'data_collection_wolof');
+// Si on est dans Docker, on prend les variables d'environnement.
+// Sinon on retombe sur 'localhost', 'root' et ''
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '');
+define('DB_NAME', getenv('DB_NAME') ?: 'data_collection_wolof');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDatabaseConnection(): mysqli

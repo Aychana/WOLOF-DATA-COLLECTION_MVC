@@ -1,0 +1,44 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Service 1 : Serveur Web (PHP 8.3 + Apache + FFmpeg)
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wolof_app_web
+    ports:
+      - "8081:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      - db
+
+  # ---------------------------------------------------------------------------
+  # Service 2 : Base de données (MySQL 8.0)
+  # ---------------------------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: wolof_app_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+
+# -----------------------------------------------------------------------------
+# Déclaration des volumes persistants
+# -----------------------------------------------------------------------------
+volumes:
+  db_data:

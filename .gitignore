@@ -1,2 +1,5 @@
 # je veux ignorer le dossier config
 /config
+
+# ignore the .env file
+.env
