@@ -183,6 +183,32 @@ body {
   background: var(--surface);
 }
 
+.input-wrapper .form-input {
+  padding-right: 40px !important; 
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.toggle-password-btn:hover {
+  color: #ffa600; /* Devient orange au survol */
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

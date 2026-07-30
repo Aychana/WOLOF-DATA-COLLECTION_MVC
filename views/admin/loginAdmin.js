@@ -18,6 +18,24 @@ async function checkAlreadyLogged() {
   }
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+  const passwordInput = document.getElementById('password');
+  const toggleBtn = document.getElementById('togglePassword');
+  const eyeIcon = document.getElementById('eyeIcon');
+  const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+  if (toggleBtn && passwordInput) {
+    toggleBtn.addEventListener('click', function () {
+      const isPassword = passwordInput.type === 'password';
+      
+      passwordInput.type = isPassword ? 'text' : 'password';
+
+      eyeIcon.style.display = isPassword ? 'none' : 'block';
+      eyeOffIcon.style.display = isPassword ? 'block' : 'none';
+    });
+  }
+});
+
 function setupLoginForm() {
   const loginForm = document.getElementById('loginForm');
   const submitBtn = document.getElementById('submitBtn');

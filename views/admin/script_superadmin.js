@@ -120,7 +120,6 @@ function switchTab(tabName) {
   const meta = TAB_HEADERS[tabName] || TAB_HEADERS.dashboard;
   document.getElementById('headerTitle').textContent = meta.title;
   document.getElementById('headerSubtitle').textContent = meta.subtitle;
-
   document.getElementById('saSidebar')?.classList.remove('open');
 }
 
@@ -711,7 +710,7 @@ function filterUsers() {
 }
 
 async function deleteUserConfirm(userId, userName) {
-  const confirmed = await confirmPopup(`Supprimer l'utilisateur « ${userName} » ?`);
+  const confirmed = await confirmPopup(`Voulez-vous vraiment supprimer ce contributeur « ${userName} » ?`);
   if (!confirmed) return;
 
   const formData = new FormData();
