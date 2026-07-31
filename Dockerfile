@@ -15,8 +15,12 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) mysqli pdo pdo_mysql gd
 
-# 3. Activation indispensable du module de réécriture Apache pour le routage MVC (.htaccess)
+# 3. Activation du module de réécriture Apache et configuration du DocumentRoot
 RUN a2enmod rewrite
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/apache2.conf
+# AUTORISER LES FICHIERS .HTACCESS (Routage MVC)
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 # 4. Copie du code source du projet dans le conteneur
 COPY . /var/www/html/
