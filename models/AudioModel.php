@@ -23,10 +23,12 @@ class AudioModel
         $sql = "SELECT u.id, u.audio_name, u.audio_path, u.transcription, u.traduction,
                        u.uploader_ref, u.status, u.assigned_to, u.date_creation,
                        u.rejection_reason, u.last_modified_at,
-                       a.name AS assigned_admin_name
+                       a.name AS assigned_admin_name,
+                       usr.name AS uploader_name
                        $ctrlCols
                 FROM uploads u
                 LEFT JOIN admins a ON a.id = u.assigned_to
+                LEFT JOIN users usr ON usr.uploader_ref = u.uploader_ref
                 $ctrlJoin
                 ORDER BY u.date_creation DESC";
         $result = $this->conn->query($sql);
@@ -211,17 +213,51 @@ class AudioModel
         return $count;
     }
 
-    public function delete(string $id): bool
+    public function delete(string $id, string $uploaderRef = ''): array
     {
         $audio    = $this->getById($id);
-        if (!$audio) return false;
+        if (!$audio) {
+            return [
+                "success" => false,
+                "message" => "Audio introuvable."];
+        }
         $filePath = __DIR__ . '/../' . $audio['audio_path'];
-        if (file_exists($filePath)) @unlink($filePath);
+
+        if (!empty($uploaderRef) && $audio['uploader_ref'] !== $uploaderRef) {
+            return [
+                'success' => false, 
+                'message' => 'Vous n\'avez pas l\'autorisation de supprimer cet audio.'
+            ];
+        }
+
+        if ($audio['status'] !== 'E') {
+            return [
+                'success' => false, 
+                'message' => 'Impossible de supprimer cet audio : il est déjà en cours de traitement ou validé.'
+            ];
+        }
+        
+        $filePath = __DIR__ . '/../' . $audio['audio_path'];
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
         $stmt = $this->conn->prepare("DELETE FROM uploads WHERE id=?");
         $stmt->bind_param("s", $id);
         $success = $stmt->execute();
         $stmt->close();
-        return $success;
+
+        if ($success) {
+            return [
+                'success' => true, 
+                'message' => 'Audio supprimé avec succès.'
+            ];
+        }
+
+        return [
+            'success' => false, 
+            'message' => 'Erreur lors de la suppression en base de données.'
+        ];
+       
     }
 
     public function deleteAll(): bool

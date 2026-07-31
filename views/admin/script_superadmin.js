@@ -768,7 +768,7 @@ function renderAudios(data) {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td title="${escHtml(fileName)}">${escHtml(fileName.length > 28 ? fileName.slice(0, 28) + '…' : fileName)}</td>
-      <td>${escHtml(audio.uploader_ref || '—')}</td>
+      <td>${escHtml(audio.uploader_name || audio.uploader_ref || '—')}</td>
       <td>${escHtml(assignedName)}</td>
       <td>${escHtml(controllerName)}</td>
       <td><span class="status-badge status-${s}">${s} — ${STATUS_LABELS[s] || s}</span></td>

@@ -410,10 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
         closeEditModal();
         await loadHistory();
       } else {
-        alert(data.message || 'Erreur suppression.');
+        alert(data.message || 'Erreur de suppression.');
       }
     } catch (err) {
-      console.error('Erreur suppression:', err);
+      console.error('Erreur de suppression:', err);
       alert('Erreur réseau lors de la suppression.');
     }
   }
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function canDelete(item) {
-    return item && item.status !== 'A';
+    return item && item.status === 'E';
   }
 
   function showEditMessage(message, type) {

@@ -27,6 +27,17 @@ class AudioController
         header("Content-Type: application/json; charset=UTF-8");
         if ($_SERVER["REQUEST_METHOD"] !== "POST") { $this->jsonError("Requête invalide."); return; }
 
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $uploader_ref = $_SESSION['uploader_ref'] ?? null;
+
+        if (!$uploader_ref) {
+            $this->jsonError("Utilisateur non connecté."); 
+            return;
+        }
+
         if (isset($_POST["action"]) && $_POST["action"] === "delete_all") {
             $success = $this->model->deleteAll();
             echo json_encode([
@@ -36,9 +47,6 @@ class AudioController
             return;
         }
 
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
         $uploader_ref = $_SESSION['uploader_ref'] ?? null;
         if (!$uploader_ref) {
             $this->jsonError("Utilisateur non connecté."); return;
@@ -50,6 +58,12 @@ class AudioController
         $audio = $this->model->getById($id);
         if (!$audio || ($audio['uploader_ref'] ?? '') !== $uploader_ref) {
             $this->jsonError("Audio introuvable ou accès refusé."); return;
+        }
+
+        $status = $audio['status'] ?? '';
+        if ($status !== 'E') {
+            $this->jsonError("Impossible de supprimer cet audio : il est déjà en cours de validation ou validé.");
+            return;
         }
 
         $success = $this->model->delete($id);

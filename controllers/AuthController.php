@@ -88,9 +88,17 @@ class AuthController {
 
     private function generateDefaultName(string $email, string $phone): string {
         if (!empty($email)) {
-            return 'Utilisateur ' . strstr($email, '@', true);
+            $username = strstr($email, '@', true);
+            $cleanName = str_replace(['.', '_', '-'], ' ', $username);
+            return ucwords(trim($cleanName));
         }
-        return 'Utilisateur ' . preg_replace('/[^0-9]/', '', $phone);
+
+        if (!empty($phone)) {
+            $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+            return !empty($cleanPhone) ? 'Membre ' . substr($cleanPhone, -4) : 'Utilisateur';
+        }
+
+        return 'Contributeur';
     }
 
     private function sendOTPEmail($to, $otp, $name) {
