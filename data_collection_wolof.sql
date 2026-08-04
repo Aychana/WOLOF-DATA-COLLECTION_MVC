@@ -136,17 +136,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Insertion du compte Super Admin
-INSERT INTO admins (id, name, email, username, password_hash, is_superadmin, is_first_login) 
-VALUES (
-    'super_admin_001',
-    'Super Administrateur',
-    'super@wolof.local',
-    'superadmin',
-    '2y$10$3mQqxgjXS0GALa2JjwclKuWqg9ssMcrv./NQT5x8oO6cgEh1uNnra',
-    TRUE,
-    1
-);
+-- -- Insertion du compte Super Admin
+-- INSERT INTO admins (id, name, email, username, password_hash, is_superadmin, is_first_login) 
+-- VALUES (
+--     'super_admin_001',
+--     'Super Administrateur',
+--     'super@wolof.local',
+--     'superadmin',
+--     '2y$10$3mQqxgjXS0GALa2JjwclKuWqg9ssMcrv./NQT5x8oO6cgEh1uNnra',
+--     TRUE,
+--     1
+-- );
 
 COMMIT;
 

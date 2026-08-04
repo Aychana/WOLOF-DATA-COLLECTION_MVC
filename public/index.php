@@ -3,6 +3,12 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 session_start();
 
+// Pour tester les erreurs
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+// session_start();
+
 require_once __DIR__ . '/../controllers/AudioController.php';
 require_once __DIR__ . '/../controllers/AuthController.php';
 require_once __DIR__ . '/../controllers/AdminController.php';

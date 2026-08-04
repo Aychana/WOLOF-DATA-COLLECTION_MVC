@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
         body: formData
       });
 
+      if (!response.ok) {
+        throw new Error(`Erreur serveur (${response.status})`);
+      }
+
       const result = await response.json();
 
       if (result.success) {

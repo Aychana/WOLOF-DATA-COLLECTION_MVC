@@ -183,7 +183,7 @@ class AudioModel
     public function updateContent(string $id, string $transcription, string $traduction, ?string $adminId = null): bool
     {
         $stmt = $this->conn->prepare(
-            "UPDATE uploads SET transcription=?, traduction=?, last_modified_by=?, last_modified_at=NOW() WHERE id=?"
+            "UPDATE uploads SET transcription=?, traduction=?, status = 'E', rejection_reason = NULL, last_modified_by=?, last_modified_at=NOW() WHERE id=?"
         );
         $stmt->bind_param("ssss", $transcription, $traduction, $adminId, $id);
         $res = $stmt->execute();

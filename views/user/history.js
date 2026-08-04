@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function canDelete(item) {
-    return item && item.status === 'E';
+    return item && item.status === 'E' || item.status === 'R';
   }
 
   function showEditMessage(message, type) {

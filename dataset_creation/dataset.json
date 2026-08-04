@@ -1,7 +1,12 @@
 [
     {
-        "audio_path": "dataset_creation\/audios\/23F1F89C-99E3-42DB-9.wav",
-        "transcription": "Nit ki lüm beug tchi bopam",
-        "traduction": "Qu'est ce qu'il veut finalement?"
+        "audio_path": "dataset_creation\/audios\/291207AD-951B-4102-A0C8-162E36A4EA9E.wav",
+        "transcription": "VIDE",
+        "traduction": "darra"
+    },
+    {
+        "audio_path": "dataset_creation\/audios\/5A02A21A-0171-434F-AC3D-9F1320264D41.wav",
+        "transcription": "wa yaw loy deff fiiiii",
+        "traduction": "Mais toi qu'est ce que tu fais ici ?"
     }
 ]

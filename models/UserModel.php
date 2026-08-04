@@ -39,39 +39,20 @@ class UserModel {
     /**
      * Crée un nouvel utilisateur et retourne son ID
      * @param string $name (nom complet)
-     * @param string $email
+     * @param string|null $email
      * @param string $ip (adresse IP pour traçabilité)
      * @param string|null $phone
      * @return string ID généré
      */
-    public function createUser(string $name, string $email, string $ip, ?string $phone = null): string {
+    public function createUser(string $name, ?string $email, string $ip, ?string $phone = null): string {
         $id = bin2hex(random_bytes(10));
         $uploader_ref = bin2hex(random_bytes(6));
-        $columns = ["id", "name", "email", "uploader_ref", "last_ip"];
-        $placeholders = ["?", "?", "?", "?", "?"];
-        $params = [$id, $name, $email, $uploader_ref, $ip];
-        $types = "sssss";
-
-        if ($phone !== null && $this->columnExists('users', 'phone')) {
-            array_splice($columns, 3, 0, "phone");
-            array_splice($placeholders, 3, 0, "?");
-            array_splice($params, 3, 0, $phone);
-            $types = "ssssss";
-        }
-
-        $sql = sprintf(
-            "INSERT INTO users (%s) VALUES (%s)",
-            implode(", ", $columns),
-            implode(", ", $placeholders)
-        );
-
+        $cleanEmail = (!empty($email) && trim($email) !== '') ? trim($email) : null;
+        $sql = "INSERT INTO users (id, name, email, uploader_ref, last_ip, phone) VALUES (?, ?, ?, ?, ?, ?)";
+    
         $stmt = $this->db->prepare($sql);
-        if ($phone !== null && $this->columnExists('users', 'phone')) {
-            $stmt->bind_param($types, ...$params);
-        } else {
-            $stmt->bind_param($types, $id, $name, $email, $uploader_ref, $ip);
-        }
-
+        $stmt->bind_param("ssssss", $id, $name, $cleanEmail, $uploader_ref, $ip, $phone);
+        
         if (!$stmt->execute()) {
             error_log("Erreur création user : " . $stmt->error);
             throw new Exception("Erreur lors de la création de l'utilisateur");
@@ -129,12 +110,10 @@ class UserModel {
     }
 
     public function getByPhone(string $phone): ?array {
-        if (!$this->columnExists('users', 'phone')) {
-            return null;
-        }
+        $cleanPhone = trim($phone);
 
         $stmt = $this->db->prepare("SELECT id, name, email, uploader_ref, phone FROM users WHERE phone = ?");
-        $stmt->bind_param("s", $phone);
+        $stmt->bind_param("s", $cleanPhone);
         $stmt->execute();
         $result = $stmt->get_result();
         $user = $result->fetch_assoc();
@@ -144,12 +123,13 @@ class UserModel {
     }
 
     public function updatePhone(string $id, string $phone): bool {
+        $cleanPhone = trim($phone);
         if (!$this->columnExists('users', 'phone')) {
             return false;
         }
 
         $stmt = $this->db->prepare("UPDATE users SET phone = ? WHERE id = ?");
-        $stmt->bind_param("ss", $phone, $id);
+        $stmt->bind_param("ss", $cleanPhone, $id);
         $success = $stmt->execute();
         $stmt->close();
         return $success;

@@ -21,22 +21,28 @@ class AuthController {
 
     // Demande de connexion utilisateur par email ou téléphone
     public function requestUserVerification() {
+        header('Content-Type: application/json; charset=UTF-8');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return ['view' => 'user/login'];
+            echo json_encode(['view' => 'user/login']);
+            exit;
         }
 
         $identifier = trim($_POST['identifier'] ?? '');
         if (empty($identifier)) {
-            return ['error' => 'Veuillez indiquer votre email ou votre numéro de téléphone.'];
+            echo json_encode(['error' => 'Veuillez indiquer votre email ou votre numéro de téléphone.']);
+            exit;
         }
 
         $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
         $isPhone = preg_match('/^[0-9+\s-]{7,20}$/', $identifier);
         if (!$isEmail && !$isPhone) {
-            return ['error' => 'Format invalide. Utilisez un email ou un numéro de téléphone.'];
+            echo json_encode(['error' => 'Format invalide. Utilisez un email ou un numéro de téléphone.']);
+            exit;
         }
 
+
         $user = null;
+        $isNewUser = false;
         if ($isEmail) {
             $user = $this->userModel->getByEmail($identifier);
             if (!$user) {
@@ -45,18 +51,30 @@ class AuthController {
                 $user   = $this->userModel->getById($userId);
             }
         } else {
-            $user = $this->userModel->getByPhone($identifier);
+            $cleanPhone = preg_replace('/[^\d+]/', '', $identifier);
+
+            // Recherche avec le numéro nettoyé
+            $user = $this->userModel->getByPhone($cleanPhone);
+            
             if (!$user) {
-                // Créer un compte avec le numéro, mais une adresse email reste nécessaire pour l'OTP.
-                $name   = $this->generateDefaultName('', $identifier);
-                $userId = $this->userModel->createUser($name, '', $_SERVER['REMOTE_ADDR'] ?? '', $identifier);
+                $name   = $this->generateDefaultName('', $cleanPhone);
+                // Création avec le numéro nettoyé et null pour l'email
+                $userId = $this->userModel->createUser($name, null, $_SERVER['REMOTE_ADDR'] ?? '', $cleanPhone);
                 $user   = $this->userModel->getById($userId);
+                $isNewUser = true;
             }
         }
 
         if (!$user) {
-            return ['error' => 'Impossible de charger ou créer le compte.'];
+            echo json_encode(['error' => 'Impossible de charger ou créer le compte.']);
+            exit;
         }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $_SESSION['user_id']      = $user['id'];
+        $_SESSION['uploader_ref'] = $user['uploader_ref'];
 
         $otp      = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $userData = json_encode([
@@ -73,17 +91,22 @@ class AuthController {
 
         if (!empty($user['email'])) {
             if (!$this->sendOTPEmail($user['email'], $otp, $user['name'] ?? $identifier)) {
-                return ['error' => 'Impossible d\'envoyer le code OTP.'];
+                echo json_encode(['error' => 'Impossible d\'envoyer le code OTP.']);
+                exit;
             }
-            return ['success' => true, 'message' => 'Un code a été envoyé à votre adresse email.', 'redirect' => 'verify-user?identifier=' . urlencode($identifier)];
+            echo json_encode(['success' => true, 'message' => 'Un code a été envoyé à votre adresse email.', 'redirect' => 'verify-user?identifier=' . urlencode($identifier)]);
+            exit;
         }
 
-        return [
+        $msg = $isNewUser ? 'Compte créé avec succès. Votre code s’affiche ci-dessous.' : 'Code de vérification généré avec succès.';
+
+        echo json_encode([
             'success' => true,
-            'message' => 'Compte créé. Votre code temporaire s’affiche sur la page de vérification.',
+            'message' => $msg,
             'redirect' => 'verify-user?identifier=' . urlencode($identifier),
             'otp' => $otp
-        ];
+        ]);
+        exit;
     }
 
     private function generateDefaultName(string $email, string $phone): string {

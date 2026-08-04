@@ -200,10 +200,10 @@ class AudioController
             $this->jsonError("Seuls les audios non validés peuvent être modifiés."); return;
         }
 
-        $success = $this->model->updateContent($id, $transcription, $traduction, $uploader_ref);
+        $success = $this->model->updateContent($id, $transcription, $traduction, $uploader_ref, 'E');
         echo json_encode([
             "status"  => $success ? "success" : "error",
-            "message" => $success ? "Audio mis à jour avec succès." : "Erreur de mise à jour.",
+            "message" => $success ? "Audio mis à jour avec et remis en attente de validation." : "Erreur de mise à jour.",
         ]);
     }
 
