@@ -1,1 +1,4 @@
 Avoir ffmeg installé si l'application n'est pas encore conteneurisé 
+`docker compose up `
+
+

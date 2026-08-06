@@ -1,0 +1,6 @@
+DB_HOST= host of db
+DB_USER= user of db
+DB_PASSWORD= password of the db
+DB_NAME= name of the db
+DB_PORT= port of the db
+MYSQL_ROOT_PASSWORD= root password of the db
