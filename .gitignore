@@ -3,3 +3,5 @@
 
 # ignore the .env file
 .env
+
+.audios/
