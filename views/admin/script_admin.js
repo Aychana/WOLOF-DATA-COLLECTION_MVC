@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (s === 'V' || s === 'R') {
         if (isMyControl) {
           btns += `<button type="button" class="action-btn secondary" onclick="openEditModal('${id}')">✎</button>`;
-          btns += `<button type="button" class="action-btn primary" onclick="changeStatus('${id}','C')">Contrôlé</button>`;
+          btns += `<button type="button" class="action-btn primary" onclick="changeStatus('${id}','C')">Contrôler</button>`;
           btns += `<button type="button" class="action-btn danger" onclick="deleteSingle('${id}')">🗑</button>`;
         } else if (isFree) {
           btns += `<span class="muted-hint">—</span>`;

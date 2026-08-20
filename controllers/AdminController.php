@@ -163,6 +163,15 @@ class AdminController {
             exit;
         }
 
+        // OBLIGATION DU MOTIF DE REJET
+        if ($status === 'R' && empty($rejectionReason)) {
+            echo json_encode([
+                'status'  => 'error', 
+                'message' => 'La saisie du motif de rejet est obligatoire.'
+            ]);
+            exit;
+        }
+
         $audio = $this->audioModel->getById($id);
         if (!$audio) {
             echo json_encode(['status' => 'error', 'message' => 'Audio introuvable']);
@@ -202,13 +211,20 @@ class AdminController {
             }
         }
 
-        $success = $this->audioModel->updateStatus($id, $status, $adminId, $rejectionReason);
-        $this->logAudit($id, 'status_change',
-            ['status' => $audio['status']],
-            ['status' => $status, 'reason' => $rejectionReason]
-        );
+        $success = $this->audioModel->updateStatus($id, $status, $adminId, $rejectionReason ?: null);
+        if ($success) {
+            $this->audioModel->logAudit(
+                $id,
+                'status_change',
+                'admin',
+                $adminId,
+                ['status' => $audio['status']],
+                ['status' => $status],
+                $rejectionReason ?: null
+            );
+        }
 
-        $labels = ['E' => 'Envoyé', 'V' => 'Validé', 'R' => 'Rejeté', 'A' => 'Archivé'];
+        $labels = ['E' => 'Envoyé', 'V' => 'Validé', 'R' => 'Rejeté', 'A' => 'Archivé', 'C' => 'Contrôlé'];
         echo json_encode([
             'status'  => $success ? 'success' : 'error',
             'message' => $success ? "Statut changé : {$labels[$status]}" : 'Erreur mise à jour',
@@ -265,11 +281,22 @@ class AdminController {
         }
 
         $success = $this->audioModel->updateContent($id, $transcription, $traduction, $adminId);
-        $this->logAudit($id, 'edit_content',
-            ['transcription' => $audio['transcription'], 'traduction' => $audio['traduction']],
-            ['transcription' => $transcription, 'traduction' => $traduction]
-        );
-
+        if ($success) {
+            $this->audioModel->logAudit(
+                $id,
+                'edit_content',
+                'admin',
+                $adminId,
+                [
+                    'transcription' => $audio['transcription'],
+                    'traduction'    => $audio['traduction']
+                ],
+                [
+                    'transcription' => $transcription,
+                    'traduction'    => $traduction
+                ]
+            );
+        }
         echo json_encode([
             'status'  => $success ? 'success' : 'error',
             'message' => $success ? 'Audio modifié avec succès' : 'Erreur modification',
@@ -297,8 +324,23 @@ class AdminController {
             exit;
         }
 
+        $audio = $this->audioModel->getById($id);
+        if (!$audio) {
+            echo json_encode(['status' => 'error', 'message' => 'Audio introuvable']);
+            exit;
+        }
+
         $success = $this->audioModel->takeControl($id, $adminId);
         if ($success) {
+            $this->audioModel->logAudit(
+                $id,
+                'take_control',
+                'admin',
+                $adminId,
+                ['controlled_by' => $audio['controlled_by'] ?? null],
+                ['controlled_by' => $adminId]
+            );
+
             echo json_encode(['status' => 'success', 'message' => 'Audio pris en charge.']);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Cet audio est déjà pris en charge par un autre contrôleur.']);
@@ -308,8 +350,9 @@ class AdminController {
 
     // ===== ARCHIVER TOUS LES V contrôlés par cet admin =====
 
-    public function archiveAllValidated() {
-        header('Content-Type: application/json');
+    public function archiveAllValidated() : void
+    {
+        header('Content-Type: application/json; charset=UTF-8');
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
         if (empty($_SESSION['admin_id'])) {
@@ -325,32 +368,20 @@ class AdminController {
 
         $adminId = $_SESSION['admin_id'];
         $count   = $this->audioModel->archiveAllValidated($adminId);
-        $this->logAudit('*', 'archive_all_validated', null, ['count' => $count]);
+        
+        $this->audioModel->logAudit(
+            'ALL',
+            'archive_all_validated',
+            'admin',
+            $adminId,
+            ['status' => 'V'],
+            ['status' => 'A', 'archived_count' => $count],
+            "Archivage groupé de $count enregistrement(s)"
+        );
 
         echo json_encode(['status' => 'success', 'message' => "$count audio(s) archivé(s) avec succès."]);
         exit;
     }
 
-    // ===== AUDIT =====
-
-    private function logAudit($audioId, $action, $oldData, $newData) {
-        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-        $adminId = $_SESSION['admin_id'] ?? null;
-        $ip      = $_SERVER['REMOTE_ADDR'] ?? null;
-        try {
-            $db   = getDatabaseConnection();
-            $old  = json_encode($oldData);
-            $new  = json_encode($newData);
-            $stmt = $db->prepare(
-                "INSERT INTO audit_logs (audio_id, admin_id, action, old_data, new_data, ip_address, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, NOW())"
-            );
-            $stmt->bind_param("ssssss", $audioId, $adminId, $action, $old, $new, $ip);
-            $stmt->execute();
-            $stmt->close();
-        } catch (Exception $e) {
-            error_log("Audit log error: " . $e->getMessage());
-        }
-    }
 }
 ?>

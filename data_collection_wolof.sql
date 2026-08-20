@@ -124,16 +124,21 @@ UPDATE admins SET role = 'validator' WHERE role IN ('linguist');
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS audit_logs;
 CREATE TABLE IF NOT EXISTS audit_logs (
-  id int NOT NULL AUTO_INCREMENT,
-  audio_id varchar(32) NOT NULL,
-  admin_id varchar(32) DEFAULT NULL,
-  action varchar(50) NOT NULL,
-  old_data longtext,
-  new_data longtext,
-  reason varchar(255) DEFAULT NULL,
-  ip_address varchar(45) DEFAULT NULL,
-  created_at datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
+  id INT NOT NULL AUTO_INCREMENT,
+  audio_id VARCHAR(36) NOT NULL,
+  actor_type ENUM('user', 'admin') NOT NULL DEFAULT 'admin',
+  actor_id VARCHAR(32) DEFAULT NULL, -- uploader_ref pour un user, admin_id pour un admin
+  action VARCHAR(50) NOT NULL,        -- 'upload', 'user_resubmit', 'status_change', 'edit_content', 'delete', 'claim', 'take_control'
+  old_data JSON DEFAULT NULL,
+  new_data JSON DEFAULT NULL,
+  reason VARCHAR(255) DEFAULT NULL,
+  ip_address VARCHAR(45) DEFAULT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_audit_audio (audio_id),
+  INDEX idx_audit_actor (actor_type, actor_id),
+  INDEX idx_audit_action (action),
+  INDEX idx_audit_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- -- Insertion du compte Super Admin

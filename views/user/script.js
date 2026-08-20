@@ -1,4 +1,4 @@
-const MAX_DURATION = 10; 
+const MAX_DURATION = 15; 
 
 document.addEventListener("DOMContentLoaded", () => {
   const form            = document.getElementById("dataForm");
@@ -108,44 +108,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===== Upload fichier =====
-  audioInput.addEventListener("change", () => {
-    const file = audioInput.files[0];
-    if (file) {
-      const allowedTypes = ["audio/wav", "audio/x-wav", "audio/mpeg", "audio/mp3"];
-      if (!allowedTypes.includes(file.type)) {
-        showPopup("Seuls les fichiers WAV ou MP3 sont acceptés.", "error");
-        audioInput.value = "";
-        fileNameDisplay.textContent = "Aucun fichier sélectionné";
-        return;
-      }
-
-      // Vérifier durée côté client
-      const tempUrl   = URL.createObjectURL(file);
+  // Fonction pour mesurer la durée réelle même en cas de bug Infinity sur Chrome
+  function getSafeAudioDuration(file) {
+    return new Promise((resolve) => {
+      const tempUrl = URL.createObjectURL(file);
       const tempAudio = new Audio(tempUrl);
+
       tempAudio.addEventListener("loadedmetadata", () => {
-        if (tempAudio.duration > MAX_DURATION) {
-          showPopup(`Fichier trop long (${Math.round(tempAudio.duration)}s). Maximum : ${MAX_DURATION}s.`, "error");
-          audioInput.value = "";
-          fileNameDisplay.textContent = "Aucun fichier sélectionné";
+        if (tempAudio.duration && tempAudio.duration !== Infinity && !isNaN(tempAudio.duration)) {
           URL.revokeObjectURL(tempUrl);
+          resolve(tempAudio.duration);
           return;
         }
-        fileNameDisplay.textContent = `Fichier choisi : ${file.name}`;
-        const audioUrl = URL.createObjectURL(file);
-        previewPlayer.src = audioUrl;
-        audioPreview.classList.remove("hidden");
+
+        // Force la tête de lecture pour récupérer la durée réelle
+        tempAudio.currentTime = 1e101;
+        tempAudio.addEventListener("timeupdate", function onTimeUpdate() {
+          tempAudio.removeEventListener("timeupdate", onTimeUpdate);
+          tempAudio.currentTime = 0;
+          const realDuration = tempAudio.duration;
+          URL.revokeObjectURL(tempUrl);
+          resolve(realDuration === Infinity || isNaN(realDuration) ? 0 : realDuration);
+        });
       });
+
       tempAudio.addEventListener("error", () => {
-        // Impossible de lire les métadonnées, on accepte
-        fileNameDisplay.textContent = `Fichier choisi : ${file.name}`;
-        const audioUrl = URL.createObjectURL(file);
-        previewPlayer.src = audioUrl;
-        audioPreview.classList.remove("hidden");
+        URL.revokeObjectURL(tempUrl);
+        resolve(0);
       });
-    } else {
+    });
+  }
+
+  // ===== Upload fichier =====
+  audioInput.addEventListener("change", async () => {
+    const file = audioInput.files[0];
+    if (!file) {
       fileNameDisplay.textContent = "Aucun fichier sélectionné";
+      return;
     }
+
+    const allowedExtensions = [".wav", ".mp3", ".webm", ".ogg", ".m4a"];
+    const fileName = file.name.toLowerCase();
+    const hasValidExt = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+    if (!hasValidExt) {
+      showPopup("Seuls les fichiers WAV, MP3, WEBM ou OGG sont acceptés.", "error");
+      audioInput.value = "";
+      fileNameDisplay.textContent = "Aucun fichier sélectionné";
+      return;
+    }
+
+    const duration = await getSafeAudioDuration(file);
+
+    if (duration > MAX_DURATION) {
+      showPopup(`Fichier trop long (${Math.round(duration)}s). Maximum : ${MAX_DURATION}s.`, "error");
+      audioInput.value = "";
+      fileNameDisplay.textContent = "Aucun fichier sélectionné";
+      return;
+    }
+
+    fileNameDisplay.textContent = `Fichier choisi : ${file.name}`;
+    const audioUrl = URL.createObjectURL(file);
+    previewPlayer.src = audioUrl;
+    audioPreview.classList.remove("hidden");
   });
 
   fallbackBtn.addEventListener("click", () => audioInput.click());
@@ -291,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
     recorderText.textContent = "Enregistrement terminé !";
     fileNameDisplay.textContent = `enregistrement.wav (${elapsedSeconds}s)`;
 
-    showPopup("Enregistrement terminé. Remplissez transcription et traduction.", "success");
+    showPopup("Enregistrement terminé. Remplissez les champs de transcription et de traduction.", "success");
   }
 
   // ===== Recommencer =====

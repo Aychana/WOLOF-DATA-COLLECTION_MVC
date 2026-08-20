@@ -183,9 +183,33 @@ class AudioModel
     public function updateContent(string $id, string $transcription, string $traduction, ?string $adminId = null): bool
     {
         $stmt = $this->conn->prepare(
-            "UPDATE uploads SET transcription=?, traduction=?, status = 'E', rejection_reason = NULL, last_modified_by=?, last_modified_at=NOW() WHERE id=?"
+            "UPDATE uploads SET 
+                transcription=?, 
+                traduction=?, 
+                last_modified_by=?, 
+                last_modified_at=NOW() 
+            WHERE id=?"
         );
         $stmt->bind_param("ssss", $transcription, $traduction, $adminId, $id);
+        $res = $stmt->execute();
+        $stmt->close();
+        return $res;
+    }
+
+    // Mise à jour par le Contributeur : Remet à 'E' et libère l'assignation (assigned_to = NULL)
+    public function updateUserContentAndResetClaim(string $id, string $transcription, string $traduction, string $uploaderRef): bool
+    {
+        $stmt = $this->conn->prepare(
+            "UPDATE uploads 
+             SET transcription = ?, 
+                 traduction = ?, 
+                 status = 'E', 
+                 assigned_to = NULL, 
+                 rejection_reason = NULL, 
+                 last_modified_at = NOW() 
+             WHERE id = ? AND uploader_ref = ?"
+        );
+        $stmt->bind_param("ssss", $transcription, $traduction, $id, $uploaderRef);
         $res = $stmt->execute();
         $stmt->close();
         return $res;
@@ -215,49 +239,62 @@ class AudioModel
 
     public function delete(string $id, string $uploaderRef = ''): array
     {
-        $audio    = $this->getById($id);
+        $audio = $this->getById($id);
         if (!$audio) {
             return [
-                "success" => false,
-                "message" => "Audio introuvable."];
-        }
-        $filePath = __DIR__ . '/../' . $audio['audio_path'];
-
-        if (!empty($uploaderRef) && $audio['uploader_ref'] !== $uploaderRef) {
-            return [
-                'success' => false, 
-                'message' => 'Vous n\'avez pas l\'autorisation de supprimer cet audio.'
+                'status'  => 'error',
+                'success' => false,
+                'message' => 'Audio introuvable.'
             ];
         }
 
-        if ($audio['status'] !== 'E') {
-            return [
-                'success' => false, 
-                'message' => 'Impossible de supprimer cet audio : il est déjà en cours de traitement ou validé.'
-            ];
+        // 1. CAS DU CONTRIBUTEUR ($uploaderRef est fourni)
+        if (!empty($uploaderRef)) {
+            // Doit être le propriétaire
+            if (($audio['uploader_ref'] ?? '') !== $uploaderRef) {
+                return [
+                    'status'  => 'error',
+                    'success' => false, 
+                    'message' => 'Vous n\'avez pas l\'autorisation de supprimer cet audio.'
+                ];
+            }
+            // Doit être uniquement au statut 'E' (non encore traité)
+            if (($audio['status'] ?? '') !== 'E') {
+                return [
+                    'status'  => 'error',
+                    'success' => false, 
+                    'message' => 'Impossible de supprimer cet audio : il est déjà en cours de traitement ou validé.'
+                ];
+            }
         }
-        
+
+        // 2. CAS DE L'ADMIN / CONTRÔLEUR ($uploaderRef est vide '')
+        // Les vérifications de prise en charge et de rôle ont déjà été validées dans AudioController.php.
+        // L'exécution passe directement à la suppression du fichier et en base de données.
+
         $filePath = __DIR__ . '/../' . $audio['audio_path'];
         if (file_exists($filePath)) {
             @unlink($filePath);
         }
-        $stmt = $this->conn->prepare("DELETE FROM uploads WHERE id=?");
+
+        $stmt = $this->conn->prepare("DELETE FROM uploads WHERE id = ?");
         $stmt->bind_param("s", $id);
         $success = $stmt->execute();
         $stmt->close();
 
         if ($success) {
             return [
+                'status'  => 'success',
                 'success' => true, 
                 'message' => 'Audio supprimé avec succès.'
             ];
         }
 
         return [
+            'status'  => 'error',
             'success' => false, 
             'message' => 'Erreur lors de la suppression en base de données.'
         ];
-       
     }
 
     public function deleteAll(): bool
@@ -270,26 +307,48 @@ class AudioModel
         return $this->conn->query("DELETE FROM uploads") !== false;
     }
 
-    public function exportDataset(string $exportDir, string $jsonPath): array
+    public function exportDataset(string $exportDir, string $jsonlPath): array
     {
-        if (!file_exists($exportDir)) mkdir($exportDir, 0777, true);
-        $result  = $this->conn->query(
+
+        $result = $this->conn->query(
             "SELECT id, audio_path, transcription, traduction FROM uploads WHERE status='C'"
         );
-        $dataset = [];
+        
+        $count = $result ? $result->num_rows : 0;
+        if ($count === 0) {
+            return ['total' => 0];
+        }
+
+        if (!file_exists($exportDir)) mkdir($exportDir, 0777, true);
+        
+        $handle = fopen($jsonlPath, 'w');
+        $totalExported = 0;
+
         while ($row = $result->fetch_assoc()) {
             $source  = __DIR__ . '/../' . $row['audio_path'];
             $newName = $row['id'] . ".wav";
             $dest    = $exportDir . $newName;
-            if (file_exists($source)) copy($source, $dest);
-            $dataset[] = [
+
+            if (file_exists($source)) {
+                copy($source, $dest);
+            }
+
+            // Création de l'objet pour une ligne
+            $lineData = [
                 "audio_path"    => "dataset_creation/audios/" . $newName,
+                "duration"      => (float)($row['duration'] ?? 0.0),
                 "transcription" => $row['transcription'],
                 "traduction"    => $row['traduction'],
             ];
+
+            // Écriture d'une ligne JSON autonome suivie d'un retour à la ligne
+            fwrite($handle, json_encode($lineData, JSON_UNESCAPED_UNICODE) . "\n");
+            $totalExported++;
         }
-        file_put_contents($jsonPath, json_encode($dataset, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        return ['total' => count($dataset)];
+
+        fclose($handle);
+
+        return ['total' => $totalExported];
     }
 
     public function archiveExportedDataset(): int
@@ -312,22 +371,46 @@ class AudioModel
         string $audio_name,
         string $original_name,
         string $audio_path,
+        float $duration,
         string $transcription,
         string $traduction,
         string $uploader_ref
     ): bool {
         $stmt = $this->conn->prepare(
-            "INSERT INTO uploads (id, audio_name, original_name, audio_path, transcription, traduction, uploader_ref, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, 'E')"
+            "INSERT INTO uploads (id, audio_name, original_name, audio_path, duration, transcription, traduction, uploader_ref, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'E')"
         );
-        $stmt->bind_param("sssssss",
-            $id, $audio_name, $original_name, $audio_path,
+        $stmt->bind_param("ssssdsss",
+            $id, $audio_name, $original_name, $audio_path, $duration,
             $transcription, $traduction, $uploader_ref
         );
         $success = $stmt->execute();
         if (!$success) error_log("AudioModel::insert error: " . $stmt->error);
         $stmt->close();
         return $success;
+    }
+
+    public function logAudit(
+        string $audioId,
+        string $action,
+        string $actorType = 'admin',
+        ?string $actorId = null,
+        ?array $oldData = null,
+        ?array $newData = null,
+        ?string $reason = null
+    ): bool {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $oldJson = $oldData !== null ? json_encode($oldData, JSON_UNESCAPED_UNICODE) : null;
+        $newJson = $newData !== null ? json_encode($newData, JSON_UNESCAPED_UNICODE) : null;
+
+        $stmt = $this->conn->prepare(
+            "INSERT INTO audit_logs (audio_id, actor_type, actor_id, action, old_data, new_data, reason, ip_address) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param("ssssssss", $audioId, $actorType, $actorId, $action, $oldJson, $newJson, $reason, $ip);
+        $res = $stmt->execute();
+        $stmt->close();
+        return $res;
     }
 
     public function getAverageValidationTimeForAdmin(string $adminId): array
@@ -339,7 +422,8 @@ class AudioModel
              FROM audit_logs al
              INNER JOIN uploads u ON u.id = al.audio_id
              WHERE al.action = 'status_change'
-               AND al.admin_id = ?
+               AND al.actor_type = 'admin'
+               AND al.actor_id = ?
                AND JSON_UNQUOTE(JSON_EXTRACT(al.new_data, '$.status')) = 'V'
                AND u.date_creation IS NOT NULL
                AND al.created_at IS NOT NULL
@@ -356,8 +440,8 @@ class AudioModel
 
         return [
             'validation_count' => $validationCount,
-            'avg_seconds' => $avgSeconds !== null ? (int)round($avgSeconds) : null,
-            'avg_label' => $avgSeconds !== null ? $this->formatDuration((int)round($avgSeconds)) : null,
+            'avg_seconds'      => $avgSeconds !== null ? (int)round($avgSeconds) : null,
+            'avg_label'        => $avgSeconds !== null ? $this->formatDuration((int)round($avgSeconds)) : null,
         ];
     }
 

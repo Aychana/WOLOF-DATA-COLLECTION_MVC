@@ -87,6 +87,7 @@ CREATE TABLE `uploads` (
   `audio_name` varchar(255) NOT NULL,
   `original_name` varchar(255) DEFAULT NULL,
   `audio_path` varchar(255) NOT NULL,
+  `duration` decimal(5,2) DEFAULT NULL,
   `transcription` text NOT NULL,
   `traduction` text NOT NULL,
   `date_creation` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
