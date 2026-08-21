@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const paginationInfo   = document.getElementById('paginationInfo');
 
   const detailsModal     = document.getElementById('detailsModal');
-  const editModal        = document.getElementById('editModal');
-  const editForm         = document.getElementById('editForm');
-  const editAudioId      = document.getElementById('editAudioId');
-  const editTranscription = document.getElementById('editTranscription');
-  const editTraduction   = document.getElementById('editTraduction');
-  const editMessage      = document.getElementById('editMessage');
+  // const editModal        = document.getElementById('editModal');
+  // const editForm         = document.getElementById('editForm');
+  // const editAudioId      = document.getElementById('editAudioId');
+  // const editTranscription = document.getElementById('editTranscription');
+  // const editTraduction   = document.getElementById('editTraduction');
+  // const editMessage      = document.getElementById('editMessage');
 
   const detailId         = document.getElementById('detailId');
   const detailDate       = document.getElementById('detailDate');
@@ -75,25 +75,25 @@ document.addEventListener('DOMContentLoaded', () => {
   prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
   nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
 
-  editForm.addEventListener('submit', submitEdit);
+  // editForm.addEventListener('submit', submitEdit);
 
   document.querySelectorAll('[data-close]').forEach(el => {
     el.addEventListener('click', () => {
       const target = el.dataset.close;
       if (target === 'details') closeDetailsModal();
-      if (target === 'edit') closeEditModal();
     });
   });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      closeEditModal();
       closeDetailsModal();
     }
   });
 
   editDetailBtn.addEventListener('click', () => {
-    if (selectedItem) openEditModal(selectedItem.id);
+    if (selectedItem) {
+      window.location.href = `index.html?edit_id=${encodeURIComponent(selectedItem.id)}`;
+    }
   });
   deleteDetailBtn.addEventListener('click', () => {
     if (selectedItem) deleteAudio(selectedItem.id);
@@ -239,6 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <button type="button" class="row-action-btn edit-action" data-id="${escapeHtml(item.id)}" aria-label="Modifier" title="Modifier">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>` : ''}
+              ${canDelete(item) ? `
+              <button type="button" class="row-action-btn delete-action" data-id="${escapeHtml(item.id)}" aria-label="Supprimer" title="Supprimer" style="color: #ef4444;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              </button>` : ''}
             </div>
           </td>
         </tr>`;
@@ -265,6 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         openEditModal(btn.dataset.id);
+      });
+    });
+    tableBody.querySelectorAll('.delete-action').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteAudio(btn.dataset.id);
       });
     });
   }
@@ -347,56 +357,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = allItems.find(entry => entry.id === id);
     if (!item) return;
     if (!canEdit(item)) {
-      showEditMessage('Modification non autorisée pour ce statut.', 'error');
+      alert('Modification non autorisée pour ce statut.');
       return;
     }
-    editAudioId.value = item.id;
-    editTranscription.value = item.transcription || '';
-    editTraduction.value = item.traduction || '';
-    editMessage.textContent = '';
-    editMessage.className = 'message';
-    editModal.hidden = false;
-    document.body.style.overflow = 'hidden';
-    closeDetailsModal();
+    // Redirection directe vers la page d'accueil avec les données préchargées
+    window.location.href = `index.html?edit_id=${encodeURIComponent(item.id)}`;
   }
 
-  function closeEditModal() {
-    editModal.hidden = true;
-    if (detailsModal.hidden) {
-      document.body.style.overflow = '';
-    }
-  }
+  // function closeEditModal() {
+  //   editModal.hidden = true;
+  //   if (detailsModal.hidden) {
+  //     document.body.style.overflow = '';
+  //   }
+  // }
 
-  async function submitEdit(event) {
-    event.preventDefault();
-    const id = editAudioId.value;
-    const transcription = editTranscription.value.trim();
-    const traduction = editTraduction.value.trim();
+  // async function submitEdit(event) {
+  //   event.preventDefault();
+  //   const id = editAudioId.value;
+  //   const transcription = editTranscription.value.trim();
+  //   const traduction = editTraduction.value.trim();
 
-    if (!transcription || !traduction) {
-      showEditMessage('Les deux champs sont obligatoires.', 'error');
-      return;
-    }
+  //   if (!transcription || !traduction) {
+  //     showEditMessage('Les deux champs sont obligatoires.', 'error');
+  //     return;
+  //   }
 
-    try {
-      const fd = new FormData();
-      fd.append('id', id);
-      fd.append('transcription', transcription);
-      fd.append('traduction', traduction);
-      const res = await fetch('update-user-upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.status === 'success') {
-        showEditMessage(data.message || 'Mis à jour.', 'success');
-        await loadHistory();
-        setTimeout(() => closeEditModal(), 700);
-      } else {
-        showEditMessage(data.message || 'Erreur mise à jour.', 'error');
-      }
-    } catch (err) {
-      console.error('Erreur mise à jour:', err);
-      showEditMessage('Erreur réseau.', 'error');
-    }
-  }
+  //   try {
+  //     const fd = new FormData();
+  //     fd.append('id', id);
+  //     fd.append('transcription', transcription);
+  //     fd.append('traduction', traduction);
+  //     const res = await fetch('update-user-upload', { method: 'POST', body: fd });
+  //     const data = await res.json();
+  //     if (data.status === 'success') {
+  //       showEditMessage(data.message || 'Mis à jour.', 'success');
+  //       await loadHistory();
+  //       setTimeout(() => closeEditModal(), 700);
+  //     } else {
+  //       showEditMessage(data.message || 'Erreur mise à jour.', 'error');
+  //     }
+  //   } catch (err) {
+  //     console.error('Erreur mise à jour:', err);
+  //     showEditMessage('Erreur réseau.', 'error');
+  //   }
+  // }
 
   async function deleteAudio(id) {
     if (!id || !confirm('Voulez-vous vraiment supprimer cet enregistrement ?')) return;
@@ -407,7 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.status === 'success') {
         closeDetailsModal();
-        closeEditModal();
         await loadHistory();
       } else {
         alert(data.message || 'Erreur de suppression.');
@@ -426,10 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return item && item.status === 'E' || item.status === 'R';
   }
 
-  function showEditMessage(message, type) {
-    editMessage.textContent = message;
-    editMessage.className = `message message--${type}`;
-  }
+  // function showEditMessage(message, type) {
+  //   editMessage.textContent = message;
+  //   editMessage.className = `message message--${type}`;
+  // }
 });
 
 function formatDisplayId(id) {

@@ -31,6 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let analyser       = null;
   let animFrameId    = null;
   const STORAGE_KEY = 'pendingUserUpload';
+    // Gestion du mode Révision / Édition
+  let currentEditId = null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('edit_id');
 
   fileNameDisplay.className  = "file-name-display";
   fileNameDisplay.textContent = "Aucun fichier sélectionné";
@@ -38,6 +42,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const recentHistoryContainer = document.getElementById('recentHistory');
   restorePendingUpload();
   loadRecentHistory();
+
+  if (editId) {
+    currentEditId = editId;
+    fetch(`get-audio-details?id=${encodeURIComponent(editId)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success' && data.audio) {
+          const audio = data.audio;
+          
+          // 1. Pré-remplir les champs texte
+          document.getElementById('transcription').value = audio.transcription || '';
+          document.getElementById('traduction').value = audio.traduction || '';
+          
+          // 2. Précharger et afficher le lecteur audio existant
+          if (audio.audio_path) {
+            const audioSrc = audio.audio_path.startsWith('http') ? audio.audio_path : audio.audio_path.replace(/^\//, '');
+            previewPlayer.src = audioSrc;
+            audioPreview.classList.remove("hidden");
+            fileNameDisplay.textContent = `Audio existant : ${audio.original_name || audio.audio_name || 'audio.wav'}`;
+          }
+
+          // 3. Afficher le bandeau de mode révision
+          const banner = document.getElementById('editModeBanner');
+          if (banner) banner.style.display = 'block';
+
+          if (submitBtnLabel) submitBtnLabel.textContent = "Mettre à jour la contribution";
+        } else {
+          showPopup(data.message || "Impossible de charger les données de l'audio.", "error");
+        }
+      })
+      .catch(err => {
+        console.error("Erreur récupération audio :", err);
+        showPopup("Erreur réseau lors de la récupération de l'audio.", "error");
+      });
+  }
+
+  document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
+    window.location.href = 'history.html';
+  });
 
   function savePendingUploadAndRedirect() {
     const transcription = (document.getElementById("transcription").value || "").trim();
@@ -392,8 +435,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const audioFile     = formData.get("audio");
     const transcription = (formData.get("transcription") || "").trim();
     const traduction    = (formData.get("traduction")    || "").trim();
-
-    if (!audioFile || audioFile.size === 0) {
+    
+    // En mode création standard, l'audio est obligatoire. En mode révision, il est optionnel si le texte seul est modifié.
+    if (!currentEditId && (!audioFile || audioFile.size === 0)) {
       showPopup("Veuillez enregistrer ou uploader un fichier audio.", "error");
       return;
     }
@@ -407,8 +451,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (submitBtnLabel) submitBtnLabel.textContent = "Envoi en cours…";
     showPopup("Envoi en cours...", "info");
 
+    const targetUrl = currentEditId ? "update-user-upload" : "upload";
+    if (currentEditId) {
+      formData.append("id", currentEditId);
+    }
+
     try {
-      const response = await fetch("upload", {
+      const response = await fetch(targetUrl, {
         method: "POST",
         body:   formData,
         cache:  "no-store"
@@ -428,17 +477,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (result && result.status === "success") {
         sessionStorage.removeItem(STORAGE_KEY);
-        showPopup(result.message || "Formulaire enregistré avec succès !", "success");
+        showPopup(result.message || "Contribution enregistrée avec succès !", "success");
         setTimeout(() => {
-          form.reset();
-          audioPreview.classList.add("hidden");
-          previewPlayer.src           = "";
-          fileNameDisplay.textContent = "Aucun fichier sélectionné";
-          recorderText.textContent    = "Cliquez pour enregistrer";
-          recorderCircle.classList.remove("recording");
-          submitBtn.disabled          = false;
-          if (submitBtnLabel) submitBtnLabel.textContent = SUBMIT_LABEL;
-          loadRecentHistory();
+          if (currentEditId) {
+            // Redirige vers l'historique après modification
+            window.location.href = "history.html";
+          } else {
+            // Réinitialise le formulaire en mode nouvel enregistrement
+            form.reset();
+            audioPreview.classList.add("hidden");
+            previewPlayer.src           = "";
+            fileNameDisplay.textContent = "Aucun fichier sélectionné";
+            recorderText.textContent    = "Cliquez pour enregistrer";
+            recorderCircle.classList.remove("recording");
+            submitBtn.disabled          = false;
+            if (submitBtnLabel) submitBtnLabel.textContent = SUBMIT_LABEL;
+            loadRecentHistory();
+          }
         }, 2000);
       } else {
         const userMsg = result && result.message

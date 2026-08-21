@@ -24,7 +24,7 @@ if (strpos($uri, $basePath) === 0) {
 }
 
 // ==================== ROUTES API ====================
-$apiRoutes = ['get-audios', 'upload', 'delete-audio', 'export-dataset', 'auth-status', 'user-history', 'update-user-upload', 'user-profile', 'user-logout', 'user-change-password'];
+$apiRoutes = ['get-audios', 'upload', 'delete-audio', 'export-dataset', 'auth-status', 'user-history', 'update-user-upload', 'user-profile', 'user-logout', 'user-change-password', 'get-audio-details'];
 
 if (in_array($uri, $apiRoutes)) {
     $controller = new AudioController();
@@ -57,6 +57,10 @@ if (in_array($uri, $apiRoutes)) {
             break;
         case 'update-user-upload':
             $controller->updateUserUpload();
+            break;
+        case 'get-audio-details':
+            $controller = new AudioController();
+            $controller->getAudioDetails();
             break;
         case 'user-profile':
         case 'user-logout':

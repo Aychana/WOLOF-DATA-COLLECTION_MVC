@@ -64,6 +64,16 @@
       </button>
     </section>
 
+    <!-- BANDEAU MODE RÉVISION (Masqué par défaut) -->
+    <div id="editModeBanner" class="edit-banner" style="display:none; background:#e0f2fe; border:1px solid #7dd3fc; color:#0369a1; padding:1rem; border-radius:0.75rem; margin-bottom:1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>Mode Révision :</strong> Vous modifiez une contribution rejetée/existante. Enregistrez une nouvelle voix ou mettez à jour le texte.
+        </div>
+        <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="background:#0284c7; color:white; border:none; padding:0.4rem 0.8rem; border-radius:0.5rem; cursor:pointer;">Annuler</button>
+      </div>
+    </div>
+
     <section class="form-section">
       <h3>Enregistrement et traduction</h3>
       <form id="dataForm" enctype="multipart/form-data">

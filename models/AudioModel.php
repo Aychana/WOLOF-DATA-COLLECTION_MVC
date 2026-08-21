@@ -197,19 +197,34 @@ class AudioModel
     }
 
     // Mise à jour par le Contributeur : Remet à 'E' et libère l'assignation (assigned_to = NULL)
-    public function updateUserContentAndResetClaim(string $id, string $transcription, string $traduction, string $uploaderRef): bool
+    public function updateUserContentAndResetClaim(string $id, string $transcription, string $traduction, string $uploaderRef, ?float $duration = null): bool
     {
+        if ($duration !== null && $duration > 0) {
         $stmt = $this->conn->prepare(
             "UPDATE uploads 
              SET transcription = ?, 
                  traduction = ?, 
+                 duration = ?,
                  status = 'E', 
                  assigned_to = NULL, 
                  rejection_reason = NULL, 
                  last_modified_at = NOW() 
              WHERE id = ? AND uploader_ref = ?"
         );
-        $stmt->bind_param("ssss", $transcription, $traduction, $id, $uploaderRef);
+        $stmt->bind_param("ssdss", $transcription, $traduction, $duration, $id, $uploaderRef);
+        } else {
+            $stmt = $this->conn->prepare(
+                "UPDATE uploads 
+                SET transcription = ?, 
+                    traduction = ?, 
+                    status = 'E', 
+                    assigned_to = NULL, 
+                    rejection_reason = NULL, 
+                    last_modified_at = NOW() 
+                WHERE id = ? AND uploader_ref = ?"
+            );
+            $stmt->bind_param("ssss", $transcription, $traduction, $id, $uploaderRef);
+        }
         $res = $stmt->execute();
         $stmt->close();
         return $res;
@@ -258,8 +273,8 @@ class AudioModel
                     'message' => 'Vous n\'avez pas l\'autorisation de supprimer cet audio.'
                 ];
             }
-            // Doit être uniquement au statut 'E' (non encore traité)
-            if (($audio['status'] ?? '') !== 'E') {
+            // Doit être uniquement au statut 'E' ou 'R'
+            if (!in_array($audio['status'] ?? '', ['E', 'R'], true)) {
                 return [
                     'status'  => 'error',
                     'success' => false, 

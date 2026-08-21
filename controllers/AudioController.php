@@ -27,6 +27,22 @@ class AudioController
         echo json_encode(["status" => "success", "data" => $this->model->getAllAudios()]);
     }
 
+    
+    public function getAudioDetails(): void
+    {
+        header("Content-Type: application/json; charset=UTF-8");
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        
+        $id = trim($_GET['id'] ?? '');
+        $audio = $this->model->getById($id);
+
+        if ($audio) {
+            echo json_encode(['status' => 'success', 'audio' => $audio]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Audio introuvable']);
+        }
+    }
+
     public function delete(): void
     {
         header("Content-Type: application/json; charset=UTF-8");
@@ -90,11 +106,11 @@ class AudioController
             $this->jsonError("Action non autorisée pour le rôle validateur.");
             return;
         } elseif ($uploader_ref && ($audio['uploader_ref'] ?? '') === $uploader_ref) {
-            // Le contributeur ne supprime que ses audios au statut 'E'
-            if (($audio['status'] ?? '') === 'E') {
+            // Le contributeur ne supprime que ses audios au statut 'E' envoyé 'R' rejeté
+           if (in_array($audio['status'] ?? '', ['E', 'R'], true)) {
                 $canDelete = true;
             } else {
-                $this->jsonError("Impossible de supprimer : l'audio est déjà en cours de traitement.");
+                $this->jsonError("Impossible de supprimer : l'audio a déjà été validé ou est en cours de traitement.");
                 return;
             }
         }
@@ -195,13 +211,6 @@ class AudioController
         
         @exec($convertCmd, $out, $ret);
 
-        // DEBUG 2 : Si la conversion échoue, afficher la commande et le message d'erreur réel de FFmpeg
-        if ($ret !== 0 || !file_exists($final_path) || filesize($final_path) === 0) {
-            $debugMessage = "DEBUG Étape 3 (Code sortie: $ret) | Commande: " . $convertCmd . " | Message FFmpeg: " . implode(" --- ", $out);
-            $this->jsonError($debugMessage);
-            return;
-        }
-
         // Nettoyage immédiat du fichier brut temporaire
         if (file_exists($temp_path)) {
             @unlink($temp_path);
@@ -224,6 +233,13 @@ class AudioController
         $duration = 0.0;
         if (!empty($durOutput) && is_numeric(trim($durOutput[0]))) {
             $duration = round((float)trim($durOutput[0]), 2);
+        }
+
+        // NOUVEAU GARDE-FOU : Rejet strict des enregistrements vides / trop courts (< 1.0s)
+        if ($duration < 1.0) {
+            @unlink($final_path);
+            $this->jsonError("L'audio enregistré ne contient aucune voix distincte ou est trop court. Veuillez réenregistrer.");
+            return;
         }
 
         // Étape 4 : Insertion en base de données
@@ -301,10 +317,43 @@ class AudioController
         }
 
         if (!in_array($audio['status'], ['E','R'], true)) {
-            $this->jsonError("Seuls les audios non validés peuvent être modifiés."); return;
+            $this->jsonError("Seules les contributions non validées peuvent être modifiées."); return;
         }
 
-        $success = $this->model->updateUserContentAndResetClaim($id, $transcription, $traduction, $uploader_ref);
+        $hasNewAudio = isset($_FILES["audio"]) && $_FILES["audio"]["error"] === UPLOAD_ERR_OK;
+        $newDuration = (float)($audio['duration'] ?? 0);
+
+        // Si le contributeur a réenregistré une nouvelle voix
+        if ($hasNewAudio) {
+            $ext = strtolower(pathinfo($_FILES["audio"]["name"], PATHINFO_EXTENSION));
+            $temp_path = $this->uploadDir . $id . "_re_temp." . $ext;
+            $final_name = basename($audio['audio_path']);
+            $final_path = $this->uploadDir . $final_name;
+
+            if (move_uploaded_file($_FILES["audio"]["tmp_name"], $temp_path)) {
+                $convertCmd = escapeshellcmd($this->ffmpegPath) . " -y -i " . escapeshellarg($temp_path)
+                            . " -af \"silenceremove=start_periods=1:start_threshold=-35dB:stop_periods=1:stop_threshold=-35dB:stop_duration=1,loudnorm\""
+                            . " -ar 16000 -ac 1 -t 15 " . escapeshellarg($final_path) . " 2>&1";
+                @exec($convertCmd, $out, $ret);
+                @unlink($temp_path);
+
+                $probeCmd = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' && file_exists(__DIR__ . '/../bin/ffprobe.exe'))
+                            ? escapeshellcmd(__DIR__ . '/../bin/ffprobe.exe') : 'ffprobe';
+                $durCmd = $probeCmd . " -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " . escapeshellarg($final_path) . " 2>&1";
+                @exec($durCmd, $durOutput);
+                
+                if (!empty($durOutput) && is_numeric(trim($durOutput[0]))) {
+                    $newDuration = round((float)trim($durOutput[0]), 2);
+                }
+
+                if ($newDuration < 1.0) {
+                    $this->jsonError("Le nouvel enregistrement ne contient aucune voix audible.");
+                    return;
+                }
+            }
+        }
+
+        $success = $this->model->updateUserContentAndResetClaim($id, $transcription, $traduction, $uploader_ref, $newDuration);
 
         if ($success) {
             $this->model->logAudit(
@@ -316,19 +365,22 @@ class AudioController
                     'transcription'   => $audio['transcription'],
                     'traduction'      => $audio['traduction'],
                     'status'          => $audio['status'],
+                    'duration'      => $audio['duration'],
                     'rejection_reason'=> $audio['rejection_reason']
                 ],
                 [
                     'transcription' => $transcription,
                     'traduction'    => $traduction,
-                    'status'        => 'E'
+                    'duration'       => $newDuration,
+                    'status'        => 'E',
+                    'audio_replaced'   => $hasNewAudio 
                 ],
-                'Modification et renvoi en validation par le contributeur'
+                $hasNewAudio ? 'Réenregistrement audio + révision texte' : 'Révision texte seule'
             );
         }
         echo json_encode([
             "status"  => $success ? "success" : "error",
-            "message" => $success ? "Audio mis à jour avec et remis en attente de validation." : "Erreur de mise à jour.",
+            "message" => $success ? "Contribution mise à jour avec et remise en attente de validation." : "Erreur de mise à jour.",
         ]);
     }
 
