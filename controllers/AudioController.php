@@ -1,5 +1,7 @@
 <?php
 
+use UserModel;
+
 require_once __DIR__ . '/../models/AudioModel.php';
 require_once __DIR__ . '/../models/AdminModel.php';
 
@@ -160,8 +162,17 @@ class AudioController
 
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
         $uploader_ref = $_SESSION['uploader_ref'] ?? null;
-        if (!$uploader_ref) {
-            $this->jsonError("Vous devez être connecté pour uploader un audio."); return;
+        $user_id      = $_SESSION['user_id'] ?? null;
+
+        if (!$uploader_ref || !$user_id) {
+            $this->jsonError("Vous devez être connecté pour uploader un audio."); 
+            return;
+        }
+        $userModel = new UserModel();
+        $user = $userModel->getById($user_id);
+        if ($user && isset($user['is_active']) && (int)$user['is_active'] === 0) {
+            $this->jsonError("Action impossible : votre compte est temporairement suspendu pour non-respect des critères de qualité.");
+            return;
         }
 
         $transcription = trim($_POST["transcription"]);
@@ -416,6 +427,22 @@ class AudioController
             "total"   => $result['total'],
             "archived" => $archived,
         ]);
+    }
+
+    public function getStats(): void
+    {
+        header("Content-Type: application/json; charset=UTF-8");
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+
+        $uploaderRef = $_SESSION['uploader_ref'] ?? null;
+        if (!$uploaderRef) {
+            echo json_encode(['status' => 'error', 'message' => 'Non connecté']);
+            return;
+        }
+
+        $stats = $this->model->getContributorStats($uploaderRef);
+        echo json_encode(['status' => 'success', 'data' => $stats]);
+        exit;
     }
 
     private function GUID(): string

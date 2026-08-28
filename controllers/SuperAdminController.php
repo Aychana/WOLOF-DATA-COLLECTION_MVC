@@ -129,23 +129,44 @@ class SuperAdminController {
     }
 
     // ===== USERS =====
-
     public function getUsersList(): void {
         if (!$this->requireSuperAdmin()) {
             $this->jsonOut(['error' => 'Accès refusé']);
         }
 
-        $stmt = $this->db->prepare(
-            "SELECT id, name, email, uploader_ref, created_at FROM users ORDER BY created_at DESC"
-        );
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $users  = [];
-        while ($row = $result->fetch_assoc()) {
-            $users[] = $row;
+        $this->jsonOut($this->userModel->getAllUsers());
+    }
+
+    // Nouvelle méthode de suspension / réactivation
+    public function toggleUserStatus(): void {
+        if (!$this->requireSuperAdmin() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->jsonOut(['error' => 'Accès refusé']);
         }
-        $stmt->close();
-        $this->jsonOut($users);
+
+        $userId   = trim($_POST['id'] ?? '');
+        $isActive = intval($_POST['is_active'] ?? 1);
+
+        if (empty($userId)) {
+            $this->jsonOut(['error' => 'ID utilisateur manquant']);
+        }
+
+        $success = $this->userModel->toggleActiveStatus($userId, $isActive);
+        $actionName = $isActive === 1 ? 'réactivé' : 'suspendu';
+
+        if ($success) {
+            $this->audioModel->logAudit(
+                'USER_' . $userId,
+                'toggle_user_status',
+                'admin',
+                $_SESSION['admin_id'] ?? null,
+                null,
+                ['is_active' => $isActive],
+                "Compte contributeur $actionName"
+            );
+            $this->jsonOut(['success' => true, 'message' => "Contributeur $actionName avec succès."]);
+        } else {
+            $this->jsonOut(['error' => 'Erreur lors de la mise à jour']);
+        }
     }
 
     public function deleteUser(): array {
@@ -191,6 +212,8 @@ class SuperAdminController {
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
         $adminId = $_SESSION['admin_id'] ?? null;
 
+        $oldAudio = $this->audioModel->getById($id);
+
         // Assigned_to
         $stmt = $this->db->prepare("UPDATE uploads SET assigned_to=? WHERE id=?");
         $stmt->bind_param("ss", $assignedTo, $id);
@@ -201,7 +224,11 @@ class SuperAdminController {
         $this->audioModel->updateStatus($id, $status, $adminId);
         $this->audioModel->updateContent($id, $transcription, $translation, $adminId);
 
-        $this->logAudit($id, 'superadmin_update', null, ['status' => $status, 'assigned_to' => $assignedTo]);
+        $this->audioModel->logAudit($id, 'superadmin_update', 'admin', $adminId, $oldAudio ? 
+        ['status' => $oldAudio['status'],  'assigned_to' => $oldAudio['assigned_to']] : null,
+        ['status' => $status, 'assigned_to' => $assignedTo],
+        'Mise à jour directe SuperAdmin'
+        );
         return ['success' => true, 'message' => 'Audio mis à jour'];
     }
 
@@ -216,30 +243,23 @@ class SuperAdminController {
         $audio = $this->audioModel->getById($id);
         if (!$audio) return ['error' => 'Audio non trouvé'];
 
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $adminId = $_SESSION['admin_id'] ?? null;
+
         if ($this->audioModel->delete($id)) {
-            $this->logAudit($id, 'superadmin_delete', $audio, null);
+            $this->audioModel->logAudit(
+                $id,
+                'superadmin_delete',
+                'admin',
+                $adminId,
+                $audio,
+                null,
+                'Suppression par SuperAdmin'
+            );
             return ['success' => true, 'message' => 'Audio supprimé'];
         }
         return ['error' => 'Erreur suppression'];
     }
 
-    private function logAudit($audioId, $action, $oldData, $newData): void {
-        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-        $adminId = $_SESSION['admin_id'] ?? null;
-        $oldJson = json_encode($oldData);
-        $newJson = json_encode($newData);
-        $ip      = $_SERVER['REMOTE_ADDR'] ?? null;
-        try {
-            $stmt = $this->db->prepare(
-                "INSERT INTO audit_logs (audio_id, admin_id, action, old_data, new_data, ip_address, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, NOW())"
-            );
-            $stmt->bind_param("ssssss", $audioId, $adminId, $action, $oldJson, $newJson, $ip);
-            $stmt->execute();
-            $stmt->close();
-        } catch (Exception $e) {
-            error_log("Audit log error: " . $e->getMessage());
-        }
-    }
 }
 ?>

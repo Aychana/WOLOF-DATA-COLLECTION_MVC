@@ -54,15 +54,20 @@ DROP TABLE IF EXISTS `audit_logs`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `audit_logs` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `audio_id` varchar(32) NOT NULL,
-  `admin_id` varchar(32) DEFAULT NULL,
+  `audio_id` varchar(36) NOT NULL,
+  `actor_type` enum('user','admin') NOT NULL DEFAULT 'admin',
+  `actor_id` varchar(32) DEFAULT NULL,
   `action` varchar(50) NOT NULL,
-  `old_data` longtext,
-  `new_data` longtext,
+  `old_data` json DEFAULT NULL,
+  `new_data` json DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `ip_address` varchar(45) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_audio` (`audio_id`),
+  KEY `idx_audit_actor` (`actor_type`,`actor_id`),
+  KEY `idx_audit_action` (`action`),
+  KEY `idx_audit_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -120,6 +125,7 @@ CREATE TABLE `users` (
   `email` varchar(191) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL, -- <-- AJOUT DE LA COLONNE PHONE
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `last_ip` varchar(45) DEFAULT NULL,
   `uploader_ref` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`),

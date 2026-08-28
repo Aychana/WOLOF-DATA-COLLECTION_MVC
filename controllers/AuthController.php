@@ -7,8 +7,9 @@ require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/SMTP.php';
 require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/Exception.php';
 
-use PHPMailer\PHPMailer\PHPMailer;
+use AudioModel;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 
 class AuthController {
     private $userModel;
@@ -183,6 +184,14 @@ class AuthController {
                 );
             }
 
+            // 1. VÉRIFICATION DU STATUT DU COMPTE (SUSPENSION)
+            $user = $this->userModel->getById($userId);
+            if ($user && isset($user['is_active']) && (int)$user['is_active'] === 0) {
+                return [
+                    'error' => 'Votre compte est temporairement suspendu en raison d\'un taux d\'erreur élevé ou pour non-respect des critères de qualité.'
+                ];
+            }
+
             if (session_status() !== PHP_SESSION_ACTIVE) {
                 session_start();
             }
@@ -224,6 +233,18 @@ class AuthController {
             return;
         }
 
+        // 2. ÉJECTION IMMÉDIATE SI SUSPENDU EN COURS DE SESSION
+        if (isset($user['is_active']) && (int)$user['is_active'] === 0) {
+            session_unset();
+            session_destroy();
+            echo json_encode([
+                'status'  => 'error',
+                'message' => 'Votre compte a été suspendu par l\'administrateur.',
+                'logged'  => false
+            ]);
+            return;
+        }
+
         $audioModel = new AudioModel();
         $uploads = $audioModel->getByUploaderRef($uploaderRef, 0);
         $stats = [
@@ -255,6 +276,7 @@ class AuthController {
                 'email'      => $user['email'],
                 'phone'      => $user['phone'] ?? null,
                 'created_at' => $user['created_at'] ?? null,
+                'is_active'  => (int)($user['is_active'] ?? 1),
                 'language'   => 'Wolof',
             ],
             'stats'  => $stats,

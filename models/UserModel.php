@@ -48,7 +48,7 @@ class UserModel {
         $id = bin2hex(random_bytes(10));
         $uploader_ref = bin2hex(random_bytes(6));
         $cleanEmail = (!empty($email) && trim($email) !== '') ? trim($email) : null;
-        $sql = "INSERT INTO users (id, name, email, uploader_ref, last_ip, phone) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO users (id, name, email, uploader_ref, last_ip, phone, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)";
     
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("ssssss", $id, $name, $cleanEmail, $uploader_ref, $ip, $phone);
@@ -75,6 +75,9 @@ class UserModel {
         if ($this->columnExists('users', 'created_at')) {
             $select .= ", created_at";
         }
+        if ($this->columnExists('users', 'is_active')) {
+            $select .= ", is_active";
+        }
         $select .= " FROM users WHERE id = ?";
 
         $stmt = $this->db->prepare($select);
@@ -97,6 +100,9 @@ class UserModel {
         if ($this->columnExists('users', 'phone')) {
             $select .= ", phone";
         }
+        if ($this->columnExists('users', 'is_active')) {
+            $select .= ", is_active";
+        }
         $select .= " FROM users WHERE email = ?";
 
         $stmt = $this->db->prepare($select);
@@ -112,7 +118,13 @@ class UserModel {
     public function getByPhone(string $phone): ?array {
         $cleanPhone = trim($phone);
 
-        $stmt = $this->db->prepare("SELECT id, name, email, uploader_ref, phone FROM users WHERE phone = ?");
+        $select = "SELECT id, name, email, uploader_ref, phone";
+        if ($this->columnExists('users', 'is_active')) {
+            $select .= ", is_active";
+        }
+        $select .= " FROM users WHERE phone = ?";
+
+        $stmt = $this->db->prepare($select);
         $stmt->bind_param("s", $cleanPhone);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -120,6 +132,44 @@ class UserModel {
         $stmt->close();
 
         return $user ?: null;
+    }
+
+    /**
+     * Récupère tous les utilisateurs pour le SuperAdmin avec is_active
+     */
+    public function getAllUsers(): array {
+        $select = "SELECT id, name, email, uploader_ref";
+        if ($this->columnExists('users', 'is_active')) {
+            $select .= ", is_active";
+        }
+        if ($this->columnExists('users', 'created_at')) {
+            $select .= ", created_at";
+        }
+        $select .= " FROM users ORDER BY created_at DESC";
+
+        $result = $this->db->query($select);
+        $users = [];
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $users[] = $row;
+            }
+        }
+        return $users;
+    }
+
+    /**
+     * Active (1) ou suspend (0) un utilisateur
+     */
+    public function toggleActiveStatus(string $userId, int $isActive): bool {
+        if (!$this->columnExists('users', 'is_active')) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare("UPDATE users SET is_active = ? WHERE id = ?");
+        $stmt->bind_param("is", $isActive, $userId);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
     }
 
     public function updatePhone(string $id, string $phone): bool {

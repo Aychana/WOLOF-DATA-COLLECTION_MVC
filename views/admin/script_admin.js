@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (result.status === 'success' && result.file) {
             showToast(`Export terminé : ${result.total || 0} audio(s). Téléchargement en cours...`, 'success');
             setTimeout(() => {
-              window.location.href = 'dataset.json';
+              window.location.href = 'dataset.jsonl';
             }, 500);
           } else {
             showToast(result.message || 'Erreur export.', 'error');
@@ -292,14 +292,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateStats(stats = {}) {
     if (adminRole !== 'validator') return;
+    
+    // Audios en attente globale dans la file
     const pending = allAudios.filter((a) => a.status === 'E').length;
-    const validated = allAudios.filter((a) => a.status === 'V').length;
     const elPending = document.getElementById('statPending');
-    const elValidated = document.getElementById('statValidatedToday');
     if (elPending) elPending.textContent = pending;
-    if (elValidated) elValidated.textContent = validated;
+
+    // Audios validés aujourd'hui (depuis le calcul SQL d'audit)
+    const elValidated = document.getElementById('statValidatedToday');
+    if (elValidated) {
+      elValidated.textContent = stats.validated_today !== undefined ? stats.validated_today : 0;
+    }
+
+    // Temps moyen
     const elAvg = document.getElementById('statAvgTime');
-    if (elAvg) elAvg.textContent = stats.avg_label || '—';
+    if (elAvg) {
+      elAvg.textContent = stats.avg_label || '—';
+    }
   }
 
   function statusBadge(s) {

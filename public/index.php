@@ -24,7 +24,7 @@ if (strpos($uri, $basePath) === 0) {
 }
 
 // ==================== ROUTES API ====================
-$apiRoutes = ['get-audios', 'upload', 'delete-audio', 'export-dataset', 'auth-status', 'user-history', 'update-user-upload', 'user-profile', 'user-logout', 'user-change-password', 'get-audio-details'];
+$apiRoutes = ['get-audios', 'upload', 'delete-audio', 'export-dataset', 'auth-status', 'user-history', 'update-user-upload', 'user-profile', 'user-logout', 'user-change-password', 'get-audio-details', 'get-contributor-stats'];
 
 if (in_array($uri, $apiRoutes)) {
     $controller = new AudioController();
@@ -62,6 +62,10 @@ if (in_array($uri, $apiRoutes)) {
             $controller = new AudioController();
             $controller->getAudioDetails();
             break;
+        case 'get-contributor-stats':
+            $controller = new AudioController();
+            $controller->getStats();
+            break;
         case 'user-profile':
         case 'user-logout':
         case 'user-change-password':
@@ -95,11 +99,11 @@ if (substr($uri, 0, 7) === 'audios/') {
 }
 
 // ==================== TÉLÉCHARGEMENT DATASET.JSON ====================
-if ($uri === 'dataset.json') {
-    $filePath = __DIR__ . '/../dataset_creation/dataset.json';
+if ($uri === 'dataset.jsonl') {
+    $filePath = __DIR__ . '/../dataset_creation/dataset.jsonl';
     if (file_exists($filePath)) {
         header('Content-Type: application/json');
-        header('Content-Disposition: attachment; filename="dataset.json"');
+        header('Content-Disposition: attachment; filename="dataset.jsonl"');
         readfile($filePath);
         exit;
     }
@@ -256,7 +260,7 @@ if (in_array($uri, ['login-user', 'request-verification', 'verify-user'])) {
 $superAdminRoutes = [
     'superadmin-get-dashboard',
     'superadmin-get-admins', 'superadmin-create-admin', 'superadmin-update-admin', 'superadmin-delete-admin',
-    'superadmin-get-users',  'superadmin-delete-user',
+    'superadmin-get-users',  'superadmin-delete-user', 'superadmin-toggle-user',
     'superadmin-get-audios', 'superadmin-update-audio', 'superadmin-delete-audio'
 ];
 
@@ -293,7 +297,9 @@ if (in_array($uri, $superAdminRoutes)) {
         case 'superadmin-get-users':
             $superAdmin->getUsersList();
             break;
-
+        case 'superadmin-toggle-user':
+            $superAdmin->toggleUserStatus();
+            exit;
         case 'superadmin-delete-user':
             $result = $superAdmin->deleteUser();
             header('Content-Type: application/json');

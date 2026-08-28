@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   loadProfileData();
+  loadGamificationData();
   setupEventListeners();
 });
 
@@ -37,6 +38,35 @@ async function loadProfileData() {
   } catch (err) {
     console.error('Erreur chargement profil:', err);
     profileName.textContent = 'Erreur de chargement';
+  }
+}
+
+// La nouvelle fonction dédiée uniquement au Badge et au Score Qualité
+async function loadGamificationData() {
+  try {
+    const res = await fetch('get-contributor-stats');
+    const resData = await res.json();
+    
+    if (resData.status === 'success') {
+      const stats = resData.data;
+      const badgeIcon = document.getElementById('badgeIcon');
+      const badgeLevel = document.getElementById('badgeLevel');
+      const badgeDesc = document.getElementById('badgeDesc');
+      const qualityScore = document.getElementById('qualityScore');
+
+      if (badgeIcon) badgeIcon.textContent = stats.badge.icon;
+      if (badgeLevel) {
+        badgeLevel.textContent = stats.badge.level;
+        badgeLevel.style.color = stats.badge.color || '#1e293b';
+      }
+      if (badgeDesc) badgeDesc.textContent = stats.badge.desc;
+      if (qualityScore) {
+        qualityScore.textContent = `${stats.quality_score}%`;
+        qualityScore.style.color = stats.quality_score >= 80 ? '#10b981' : (stats.quality_score >= 60 ? '#f59e0b' : '#ef4444');
+      }
+    }
+  } catch (err) {
+    console.error('Erreur chargement gamification:', err);
   }
 }
 

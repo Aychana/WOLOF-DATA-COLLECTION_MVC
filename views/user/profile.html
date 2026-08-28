@@ -77,6 +77,23 @@
       </div>
     </section>
 
+    <!-- 2. NOUVEAU BLOC : Gamification (Badge & Score Qualité) -->
+    <section class="gamification-card" style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid #e2e8f0;">
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <span id="badgeIcon" style="font-size: 38px;">🌱</span>
+          <div>
+            <h3 id="badgeLevel" style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700;">Apprenti</h3>
+            <p id="badgeDesc" style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;">Chargement de votre rang...</p>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Score Qualité</span>
+          <div id="qualityScore" style="font-size: 26px; font-weight: 800; color: #10b981;">100%</div>
+        </div>
+      </div>
+    </section>
+
     <section class="stats-section" aria-labelledby="statsTitle">
       <h2 id="statsTitle">Votre contribution</h2>
       <div class="stats-grid">

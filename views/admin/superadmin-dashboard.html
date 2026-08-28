@@ -114,7 +114,7 @@
             <p class="kpi-card__value" id="kpi-rejected">0</p>
             <p class="kpi-card__label">Rejeté(s)</p>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-goto-tab="users" style="cursor: pointer;">
             <div class="kpi-card__top">
               <span class="kpi-card__icon kpi-card__icon--info" aria-hidden="true">👥</span>
             </div>
@@ -140,7 +140,6 @@
             <h3 class="chart-card__title">Distribution des statuts</h3>
             <div class="chart-donut-wrap">
               <canvas id="chart-status" height="200"></canvas>
-              <p class="chart-donut-center" id="chart-status-center">—</p>
             </div>
             <ul class="chart-legend" id="chart-status-legend"></ul>
           </div>
@@ -232,6 +231,7 @@
                   <th>Nom</th>
                   <th>Email</th>
                   <th>Référence</th>
+                  <th>Statut</th>
                   <th>Créé le</th>
                   <th>Actions</th>
                 </tr>
@@ -415,8 +415,8 @@
       </div>
       <div class="modal__body export-summary">
         <p><strong>Audios à exporter :</strong> <span id="export-count">0</span></p>
-        <p><strong>Qualité estimée :</strong> <span id="export-quality">0%</span></p>
-        <p><strong>Volume estimé :</strong> <span id="export-volume">0 MB</span></p>
+        <p><strong>Statut du lot :</strong> <span style="color:#10b981;font-weight:600;">100% Contrôlé & Validé</span></p>
+        <p><strong>Poids estimé :</strong> <span id="export-volume">0 MB</span></p>
       </div>
       <div class="modal__footer">
         <button type="button" class="btn btn-secondary" data-close-modal>Annuler</button>

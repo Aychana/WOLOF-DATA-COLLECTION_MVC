@@ -104,6 +104,14 @@ function setupTabs() {
       filterAudios();
     });
   });
+
+  // Navigation directe vers un onglet (ex: Contributeurs)
+  document.querySelectorAll('.kpi-card[data-goto-tab]').forEach((card) => {
+    card.addEventListener('click', () => {
+      const targetTab = card.dataset.gotoTab;
+      if (targetTab) switchTab(targetTab);
+    });
+  });
 }
 
 function switchTab(tabName) {
@@ -304,10 +312,6 @@ function renderChartStatus() {
   const pending = kpis.total_pending || 0;
   const rejected = kpis.total_rejected || 0;
   const controlled = kpis.total_controlled || 0;
-  const total = validated + pending + rejected + controlled || 1;
-  const pctValidated = Math.round((validated / total) * 100);
-
-  setText('chart-status-center', `${pctValidated}%`);
 
   const legend = document.getElementById('chart-status-legend');
   if (legend) {
@@ -463,11 +467,10 @@ function showExportModal() {
   const controlled = kpis.total_controlled || 0;
   const rejected = kpis.total_rejected || 0;
   const total = kpis.total_submitted || 1;
-  const quality = total > 0 ? 100 - (rejected / total) * 100 : 100;
+ 
 
   setText('export-count', formatNum(controlled));
-  setText('export-quality', `${quality.toFixed(1)}%`);
-  setText('export-volume', `${(controlled * 0.5).toFixed(0)} MB (estimation)`);
+  setText('export-volume', `${(controlled * 0.4).toFixed(1)} MB (estimation WAV)`);
   openModal('exportModal');
 }
 
@@ -494,8 +497,8 @@ async function confirmExport() {
 
 function downloadDataset() {
   const a = document.createElement('a');
-  a.href = 'dataset.json';
-  a.download = 'dataset.json';
+  a.href = 'dataset.jsonl';
+  a.download = 'dataset.jsonl';
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -680,22 +683,66 @@ function renderUsers(data) {
   if (noData) noData.hidden = true;
 
   list.forEach((user) => {
+    const isActive = Number(user.is_active ?? 1) === 1;
+    const badgeStatus = isActive
+      ? '<span style="background:#e6f4ea;color:#137333;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">Actif</span>'
+      : '<span style="background:#fce8e6;color:#c5221f;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">Suspendu</span>';
+
+    const toggleBtn = isActive
+      ? `<button type="button" class="btn-warning btn-sm" style="margin-right:4px;padding:4px 8px;border-radius:6px;border:none;background:#f59e0b;color:#fff;cursor:pointer;" data-toggle-user="${escHtml(user.id)}" data-target-status="0" data-name="${escHtml(user.name || '')}">Suspendre</button>`
+      : `<button type="button" class="btn-success btn-sm" style="margin-right:4px;padding:4px 8px;border-radius:6px;border:none;background:#10b981;color:#fff;cursor:pointer;" data-toggle-user="${escHtml(user.id)}" data-target-status="1" data-name="${escHtml(user.name || '')}">Réactiver</button>`;
     const row = document.createElement('tr');
     row.innerHTML = `
       <td><strong>${escHtml(user.name || '—')}</strong></td>
       <td>${escHtml(user.email || '—')}</td>
       <td><code>${escHtml(user.uploader_ref || '—')}</code></td>
+      <td>${badgeStatus}</td>
       <td>${fmtDate(user.created_at)}</td>
       <td>
+        ${toggleBtn}
         <button type="button" class="btn-delete" data-delete-user="${escHtml(user.id)}" data-name="${escHtml(user.name || '')}">Supprimer</button>
       </td>
     `;
     tbody.appendChild(row);
   });
 
+  // Écouteurs pour suspendre / réactiver
+  tbody.querySelectorAll('[data-toggle-user]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const userId = btn.dataset.toggleUser;
+      const targetStatus = parseInt(btn.dataset.targetStatus, 10);
+      const userName = btn.dataset.name;
+      toggleUserStatusConfirm(userId, targetStatus, userName);
+    });
+  });
+
   tbody.querySelectorAll('[data-delete-user]').forEach((btn) => {
     btn.addEventListener('click', () => deleteUserConfirm(btn.dataset.deleteUser, btn.dataset.name));
   });
+
+}
+
+async function toggleUserStatusConfirm(userId, newStatus, userName) {
+  const actionText = newStatus === 1 ? 'réactiver' : 'suspendre';
+  const confirmed = await confirmPopup(`Voulez-vous vraiment ${actionText} le compte de « ${userName} » ?`);
+  if (!confirmed) return;
+
+  const formData = new FormData();
+  formData.append('id', userId);
+  formData.append('is_active', newStatus);
+
+  try {
+    const response = await fetch('superadmin-toggle-user', { method: 'POST', body: formData });
+    const data = await response.json();
+    if (data.success) {
+      showToast(data.message || `Compte ${actionText} avec succès.`, 'success');
+      loadAllData();
+    } else {
+      showMessage('usersMessage', data.error || 'Erreur lors de la modification.', 'error');
+    }
+  } catch {
+    showMessage('usersMessage', 'Erreur réseau.', 'error');
+  }
 }
 
 function filterUsers() {
