@@ -6,3 +6,6 @@
 
 audios/
 dataset_creation/
+.venv/
+__pycache__/
+

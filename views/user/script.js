@@ -39,6 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
   fileNameDisplay.className  = "file-name-display";
   fileNameDisplay.textContent = "Aucun fichier sélectionné";
 
+  //Bouton génération appel api
+  const generateBtn     = document.getElementById("generateBtn");
+  const generateBtnLabel= generateBtn ? generateBtn.querySelector(".generate-btn__label") : null;
+
   const recentHistoryContainer = document.getElementById('recentHistory');
   restorePendingUpload();
   loadRecentHistory();
@@ -374,6 +378,60 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("traduction").value    = "";
     setTimeout(() => window.location.reload(), 10);
   });
+
+  // ===== Bouton Générer une proposition (Appel API Inférence) =====
+  if (generateBtn) {
+    generateBtn.addEventListener("click", async () => {
+      const audioFile = audioInput.files[0];
+      
+      // Vérifier si un audio est bien présent
+      if (!audioFile) {
+        showPopup("Veuillez d'abord enregistrer ou importer un audio.", "warning");
+        return;
+      }
+
+      // Bloquer le bouton pendant le chargement
+      generateBtn.disabled = true;
+      const originalText = generateBtnLabel.textContent;
+      generateBtnLabel.textContent = "Génération en cours...";
+      showPopup("Interrogation de l'IA en cours...", "info");
+
+      // Préparer les données pour FastAPI
+      const formData = new FormData();
+      // Attention : Le nom "fichier_audio" doit correspondre exactement au paramètre FastAPI
+      formData.append("fichier_audio", audioFile);
+
+      try {
+        // Remplace localhost:8000 par l'URL de ton API si elle est hébergée ailleurs
+        const response = await fetch("http://localhost:8000/pipeline-complet", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.statut === "succès" && data.resultats) {
+          // Remplir les champs avec les retours de l'API
+          document.getElementById("transcription").value = data.resultats.transcription_wolof || "";
+          document.getElementById("traduction").value = data.resultats.traduction_francaise || "";
+          showPopup("Propositions générées avec succès !", "success");
+        } else {
+          showPopup("L'API n'a pas renvoyé les données attendues.", "error");
+        }
+      } catch (error) {
+        console.error("Erreur appel API Inférence:", error);
+        showPopup("Erreur de connexion au modèle. Vérifiez que l'API est lancée.", "error");
+      } finally {
+        // Rétablir le bouton
+        generateBtn.disabled = false;
+        generateBtnLabel.textContent = originalText;
+      }
+    });
+  }
 
   // ===== Soumission formulaire (même logique que la version qui marchait) =====
   form.addEventListener("submit", async (e) => {

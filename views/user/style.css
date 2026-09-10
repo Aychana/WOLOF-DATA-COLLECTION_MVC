@@ -440,11 +440,14 @@ body.page-contributeur {
 
 .form-actions {
   display: flex;
+  flex-direction: column; /* Les boutons s'empilent sur mobile */
+  gap: 1rem;
   justify-content: center;
 }
 
 @media (min-width: 600px) {
   .form-actions {
+    flex-direction: row; /* Les boutons s'alignent sur bureau */
     justify-content: flex-end;
   }
 }
@@ -480,6 +483,42 @@ body.page-contributeur {
 }
 
 .submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ===== Style du nouveau bouton Générer ===== */
+.generate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.75rem;
+  border: none;
+  border-radius: var(--radius-xl);
+  background: #f59e0b; /* Couleur orange/ambre pour le différencier de la validation */
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+  transition: background 0.2s, transform 0.15s, opacity 0.2s;
+}
+
+@media (min-width: 600px) {
+  .generate-btn {
+    width: auto;
+  }
+}
+
+.generate-btn:hover:not(:disabled) {
+  background: #d97706; /* Assombrissement au survol */
+  transform: translateY(-1px);
+}
+
+.generate-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
