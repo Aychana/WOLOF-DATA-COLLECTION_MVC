@@ -379,31 +379,67 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => window.location.reload(), 10);
   });
 
-  // ===== Bouton Générer une proposition (Appel API Inférence) =====
   if (generateBtn) {
     generateBtn.addEventListener("click", async () => {
-      const audioFile = audioInput.files[0];
-      
-      // Vérifier si un audio est bien présent
+      let audioFile = null;
+      if (audioInput && audioInput.files && audioInput.files.length > 0) {
+        audioFile = audioInput.files[0];
+      } else if (typeof recordedAudioBlob !== "undefined" && recordedAudioBlob) {
+        audioFile = recordedAudioBlob;
+      }
+
       if (!audioFile) {
         showPopup("Veuillez d'abord enregistrer ou importer un audio.", "warning");
         return;
       }
 
-      // Bloquer le bouton pendant le chargement
-      generateBtn.disabled = true;
-      const originalText = generateBtnLabel.textContent;
-      generateBtnLabel.textContent = "Génération en cours...";
-      showPopup("Interrogation de l'IA en cours...", "info");
+      const transcriptionArea = document.getElementById("transcription");
+      const traductionArea    = document.getElementById("traduction");
+      const progressBanner    = document.getElementById("aiProgressBanner");
+      const stepLabel         = document.getElementById("aiStepLabel");
+      const timerLabel        = document.getElementById("aiTimer");
 
-      // Préparer les données pour FastAPI
+      // --- MISE EN PLACE DE L'UX IMMERSIVE ---
+      generateBtn.disabled = true;
+      const originalBtnHTML = generateBtn.innerHTML;
+      generateBtn.innerHTML = '<span class="spinner-icon"></span> Traitement en cours...';
+
+      // Effet visuel Shimmer sur les zones de résultat
+      transcriptionArea.classList.add("textarea-skeleton");
+      traductionArea.classList.add("textarea-skeleton");
+      transcriptionArea.value = "";
+      traductionArea.value = "";
+      transcriptionArea.placeholder = "Génération de la transcription wolof...";
+      traductionArea.placeholder = "Génération de la traduction française...";
+
+      // Affichage du bandeau d'étapes
+      if (progressBanner) progressBanner.style.display = "flex";
+
+      // Gestion du timer et des messages dynamiques par tranche de temps
+      let elapsed = 0;
+      timerLabel.textContent = "0s écoulées";
+      
+      const intervalTimer = setInterval(() => {
+        elapsed++;
+        timerLabel.textContent = `${elapsed}s écoulées`;
+
+        if (elapsed === 1) {
+          stepLabel.textContent = "🎙️ Écoute attentive de l'enregistrement...";
+        } else if (elapsed === 4) {
+          stepLabel.textContent = "✍️ Écriture de la parole en wolof...";
+        } else if (elapsed === 9) {
+          stepLabel.textContent = "🌍 Traduction du texte vers le français...";
+        } else if (elapsed === 14) {
+          stepLabel.textContent = "✨ Ajustement et mise en page des suggestions...";
+        }
+      }, 1000);
+
       const formData = new FormData();
-      // Attention : Le nom "fichier_audio" doit correspondre exactement au paramètre FastAPI
-      formData.append("fichier_audio", audioFile);
+      formData.append("fichier_audio", audioFile, "input_audio.wav");
 
       try {
-        // Remplace localhost:8000 par l'URL de ton API si elle est hébergée ailleurs
-        const response = await fetch("http://localhost:8000/pipeline-complet", {
+        const apiHost = window.location.hostname;
+        const response = await fetch(`http://${apiHost}:8000/pipeline-complet`, {
           method: "POST",
           body: formData,
         });
@@ -415,22 +451,41 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
 
         if (data.statut === "succès" && data.resultats) {
-          // Remplir les champs avec les retours de l'API
-          document.getElementById("transcription").value = data.resultats.transcription_wolof || "";
-          document.getElementById("traduction").value = data.resultats.traduction_francaise || "";
-          showPopup("Propositions générées avec succès !", "success");
+          transcriptionArea.value = cleanGeneratedText(data.resultats.transcription_wolof);
+          traductionArea.value    = cleanGeneratedText(data.resultats.traduction_francaise);
+          showPopup(`Propositions générées avec succès en ${elapsed}s !`, "success");
         } else {
           showPopup("L'API n'a pas renvoyé les données attendues.", "error");
         }
+
       } catch (error) {
         console.error("Erreur appel API Inférence:", error);
-        showPopup("Erreur de connexion au modèle. Vérifiez que l'API est lancée.", "error");
+        showPopup("Erreur de connexion au modèle IA.", "error");
       } finally {
-        // Rétablir le bouton
+        // --- REMISE À ZÉRO ---
+        clearInterval(intervalTimer);
+        if (progressBanner) progressBanner.style.display = "none";
         generateBtn.disabled = false;
-        generateBtnLabel.textContent = originalText;
+        generateBtn.innerHTML = originalBtnHTML;
+        transcriptionArea.classList.remove("textarea-skeleton");
+        traductionArea.classList.remove("textarea-skeleton");
+        transcriptionArea.placeholder = "Saisissez la transcription ici...";
+        traductionArea.placeholder = "Traduisez le contenu en français...";
       }
     });
+  }
+
+  function cleanGeneratedText(text) {
+    if (!text) return "";
+    return text
+      // Supprime les balises spéciales Whisper du type <|wo|>, <|transcribe|>, etc.
+      .replace(/<\|.*?\|>/g, "")
+      // Remplace les sauts de ligne HTML <br> ou <br /> par un saut de ligne propre
+      .replace(/<br\s*[\/]?>/gi, "\n")
+      // Retire les balises HTML éventuelles restantes
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      // Nettoie les espaces multiples ou en début/fin de chaîne
+      .trim();
   }
 
   // ===== Soumission formulaire (même logique que la version qui marchait) =====
