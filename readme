@@ -1,4 +1,37 @@
-Avoir ffmeg installé si l'application n'est pas encore conteneurisé 
-`docker compose up `
+# Plateforme de Collecte Vocale & Pipeline IA Wolof-Français
 
+Système de collecte participative (*crowdsourcing*), d'annotation bilingue et d'assistance par intelligence artificielle (ASR Wolof + Traduction Automatique) dédié à la constitution de jeux de données vocaux pour le wolof.
 
+---
+
+## 1. Présentation du Projet
+
+La plateforme optimise le recueil de données audio bilingues en réduisant la charge de saisie manuelle :
+* **Assistance IA interactive :** À partir d'un enregistrement vocal, le contributeur peut générer automatiquement une proposition de transcription en wolof et de traduction en français.
+* **Supervision humaine :** Le contributeur relit, ajuste si nécessaire et soumet son enregistrement.
+* **Contrôle qualité & Modération :** Une équipe de linguistes valide, corrige et contrôle les données avant export pour l'entraînement de modèles.
+
+---
+
+## 2. Stack Technique Résumée
+
+* **Web :** PHP 8.3 (Architecture MVC Vanilla) conteneurisé sous Docker (Apache / MySQL 8.0).
+* **Traitement Audio :** FFmpeg (filtrage, normalisation EBU R128, conversion 16 kHz mono).
+* **Service IA :** Microservice FastAPI / Uvicorn sous Python géré avec Astral `uv`.
+  * *Modèle ASR :* `AIHubSN/m-kiriku-asr` (Whisper adapté au wolof).
+  * *Modèle Traduction :* `galsenai/wolofToFrenchTranslator_nllb` (Meta NLLB-200 spécialisé).
+
+---
+
+## 3. Démarrage Rapide
+
+### Sur le Serveur Dédié (Environnement déjà configuré)
+```bash
+# 1. Lancer l'application Web et la base de données
+cd ~/WOLOF-DATA-COLLECTION_MVC
+docker compose start
+
+# 2. Lancer le microservice IA
+cd ai_service
+source .venv/bin/activate
+uvicorn main:app --host 0.0.0.0 --port 8000

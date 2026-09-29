@@ -45,6 +45,25 @@ CREATE TABLE `admins` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+/* ajout d'un super admin à l'initialisation de la base de données mdp = password*/
+INSERT INTO `admins` (
+  id, name, email, username, phone, uploader_ref,
+  password_hash, role, is_superadmin, is_first_login, created_at, permissions
+) VALUES (
+  `adm_test_01`,
+  `Admin Test Demo`,
+  `admin.test@solid.sn`,
+  `admintest`,
+  `+221770000001`,
+  `REF_ADMIN_TEST`,
+  `\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi`,
+  `validator`,
+  1,
+  0,
+  NOW(),
+  `edit_transcription,validate,reject,delete,export,archive`
+);
+
 --
 -- Table structure for table `audit_logs`
 --

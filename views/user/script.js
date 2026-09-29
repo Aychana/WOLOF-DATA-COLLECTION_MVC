@@ -357,6 +357,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // Afficher le player directement
     const audioUrl = URL.createObjectURL(audioBlob);
     previewPlayer.src = audioUrl;
+    previewPlayer.preload = "auto"; // Demande au navigateur de lire les métadonnées immédiatement
+
+    // 3. Forcer le calcul immédiat de la durée totale sur le lecteur natif
+    previewPlayer.addEventListener("loadedmetadata", function updateDurationOnLoad() {
+      previewPlayer.removeEventListener("loadedmetadata", updateDurationOnLoad);
+      
+      // Si la durée n'est pas encore disponible ou indique Infinity (bogue Chrome)
+      if (!previewPlayer.duration || previewPlayer.duration === Infinity || isNaN(previewPlayer.duration)) {
+        previewPlayer.currentTime = 1e101;
+        previewPlayer.addEventListener("timeupdate", function onTime() {
+          previewPlayer.removeEventListener("timeupdate", onTime);
+          previewPlayer.currentTime = 0; // Remet la tête de lecture à 0:00 avec la durée totale affichée !
+        });
+      }
+    });
+
+    previewPlayer.load(); // Force le rechargement immédiat des métadonnées
     audioPreview.classList.remove("hidden");
 
     recorderCircle.classList.remove("recording");

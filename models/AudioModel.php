@@ -752,12 +752,13 @@ class AudioModel
         $totalPending   = (int)($stats['total_pending'] ?? 0);
         $evaluatedCount = $totalValidated + $totalRejected;
 
-        // 1. Calcul du Score Qualité : Validés / Évalués
-        $qualityScore = $evaluatedCount > 0 
+        // 1. Calcul du Score Qualité : calculé UNIQUEMENT à partir de 3 audios évalués
+        // Évite le faux 100% sur un échantillon non représentatif de 1 ou 2 audios
+        $qualityScore = $evaluatedCount >= 3 
             ? (int)round(($totalValidated / $evaluatedCount) * 100) 
             : null;
 
-        // 2. Attribution des Badges
+        // 2. Attribution des Badges (tes paliers d'origine conservés à 100%)
         if ($evaluatedCount < 5) {
             $badge = [
                 'level' => 'Apprenti',
@@ -765,14 +766,14 @@ class AudioModel
                 'color' => '#64748b',
                 'desc'  => 'Vos premiers enregistrements sont en cours d\'évaluation.'
             ];
-        } elseif ($qualityScore < 70 && $evaluatedCount >= 10) {
+        } elseif ($qualityScore !== null && $qualityScore < 70 && $evaluatedCount >= 10) {
             $badge = [
                 'level' => 'Attention Qualité',
                 'icon'  => '⚠️',
                 'color' => '#ef4444',
                 'desc'  => 'Taux d\'erreur élevé. Vérifiez la clarté du micro et l\'orthographe.'
             ];
-        } elseif ($qualityScore >= 85 && $totalValidated >= 15) {
+        } elseif ($qualityScore !== null && $qualityScore >= 85 && $totalValidated >= 15) {
             $badge = [
                 'level' => 'Ambassadeur Wolof',
                 'icon'  => '👑',
@@ -793,7 +794,7 @@ class AudioModel
             'total_validated' => $totalValidated,
             'total_rejected'  => $totalRejected,
             'total_pending'   => $totalPending,
-            'quality_score'   => $qualityScore !== null ? $qualityScore : 100,
+            'quality_score'   => $qualityScore !== null ? $qualityScore : 0,
             'quality_label'   => $qualityScore !== null ? "{$qualityScore}%" : "—",
             'badge'           => $badge
         ];
